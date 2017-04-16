@@ -100,6 +100,7 @@ function BlackList() {
             method: 'delete',
             dataType: 'JSON',
             success: function () {
+                toastr.warning("Operacion realizada");
                 table.ajax.reload();
             }
 
@@ -117,6 +118,7 @@ function BlackList() {
             dataType: 'JSON',
             success: function (data) {
                 obj.tableExcel(data.data);
+                toastr.warning("Operacion realizada");
             }
 
         })
