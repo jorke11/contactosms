@@ -13,6 +13,7 @@
             <table class="table" id="tbl">
                 <thead>
                     <tr>
+                        <th>Nit</th>
                         <th>Usuario</th>
                         <th>Cupo</th>
                     </tr>

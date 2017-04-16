@@ -601,7 +601,7 @@ class CargaExcel extends MY_Controller {
                 $arreglo["fechacargue"] = date("Y-m-d H:i:s");
             }
         } else {
-            $errorSms = "Numero " . $arreglo["numero"] . " se encuentra en lista negra";
+            $errorSms = "NUMERO EN LISTA NEGRA - " . $arreglo["numero"];
         }
 
 

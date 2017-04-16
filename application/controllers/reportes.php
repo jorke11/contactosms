@@ -155,10 +155,10 @@ class Reportes extends MY_Controller {
     public function getConsumo() {
         $draw = 1;
         $sql = "
-            select a.usuario,count(b.id) as consumo
-            from usuarios a, registros b, bases c 
-            where b.fechaenvio > '" . date("Y-m-01") . "' and b.fechaenvio <= now() and b.idbase = c.id and c.idusuario = a.id 
-            group by 1 order by 1";
+            select d.nit,a.usuario,count(b.id) as consumo
+            from usuarios a, registros b, bases c,empresas d
+            where b.fechaenvio >= '" . date("Y-m-01") . "' and b.fechaenvio <= now() and b.idbase = c.id and c.idusuario = a.id and a.idempresa = d.id 
+            group by 1,2 order by 1";
         $datos = $this->AdministradorModel->ejecutar($sql);
         $respuesta = $this->dataTable($datos);
         $respuesta["draw"] = 1;
