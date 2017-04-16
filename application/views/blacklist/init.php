@@ -1,3 +1,5 @@
+<script src="<?php echo base_url() ?>librerias/toastr/toastr.min.js"></script>
+<link href="<?php echo base_url() ?>librerias/toastr/toastr.min.css" rel="stylesheet">
 <div class="container-fluid">
     <div class="row">
         <!-- Nav tabs -->

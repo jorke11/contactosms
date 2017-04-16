@@ -36,6 +36,7 @@ function BlackList() {
             processData: false,
             dataType: "JSON",
             success: function (data) {
+                toastr.success("Operacion realizada");
                 $("#archivo_id").val(data.archivo_id);
                 $("#btnConfirmation").attr("disabled", false);
                 obj.tableExcel(data.data);
@@ -71,6 +72,7 @@ function BlackList() {
                 dataType: 'JSON',
                 success: function (data) {
                     if (data.success == true) {
+                        toastr.success("Operacion realizada");
                         table.ajax.reload();
                     }
                 }
@@ -125,12 +127,15 @@ function BlackList() {
         return $('#tbl').DataTable({
             processing: true,
             serverSide: true,
-            ajax: "blacklist/getList",
+            ajax: {
+                url: "blacklist/getList",
+                method: "POST"
+            },
             columns: [
-                {data: "id"},
+                {data: "id", searchable: false, },
                 {data: "numero"},
                 {data: "usuario"},
-                {data: "date_insert"},
+                {data: "date_insert", searchable: false},
             ],
             order: [[1, 'ASC']],
             aoColumnDefs: [

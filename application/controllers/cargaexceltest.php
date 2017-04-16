@@ -223,8 +223,10 @@ class CargaExceltest extends MY_Controller {
                     $this->agregaDatosSession($value, $fechapro, $cont, $this->idbase);
                 }
             }
-
-            $error = $this->CargaexcelModel->buscar("errores", 'COUNT(*) total', 'idbase=' . $this->idbase, 'row');
+            $where = 'idbase=' . $this->idbase . " and error NOT ILIKE '%LISTA NEGRA%'";
+            $error = $this->CargaexcelModel->buscar("errores", 'COUNT(*) total', $where, 'row');
+            $where = 'idbase=' . $this->idbase . " and error ILIKE '%LISTA NEGRA%'";
+            $errorBlack = $this->CargaexcelModel->buscar("errores", 'COUNT(*) total',$where, 'row');
             $total = $this->CargaexcelModel->buscar("registros", 'COUNT(*) total', 'idbase=' . $this->idbase, 'row');
             $para["errores"] = $error["total"];
             $para["registros"] = $total["total"];
@@ -235,6 +237,7 @@ class CargaExceltest extends MY_Controller {
 
 
             $respuesta["errores"] = $error["total"];
+            $respuesta["blacklist"] = $errorBlack["total"];
             $respuesta["ok"] = $total["total"];
             $respuesta["idbase"] = $this->idbase;
             $respuesta["cupo"] = $cupo;
@@ -601,7 +604,7 @@ class CargaExceltest extends MY_Controller {
                 $arreglo["fechacargue"] = date("Y-m-d H:i:s");
             }
         } else {
-            $errorSms = "Numero " . $arreglo["numero"] . " se encuentra en lista negra";
+            $errorSms = "NUMERO EN LISTA NEGRA - " . $arreglo["numero"];
         }
 
 
@@ -688,7 +691,14 @@ class CargaExceltest extends MY_Controller {
 
     public function verErrores() {
         $data = $this->input->post();
-        $where = "idbase=" . $data["idbase"] . " limit 20";
+        $where = "idbase=" . $data["idbase"] . " and error NOT ILIKE '%LISTA NEGRA%' limit 20";
+        $datos = $this->CargaexcelModel->Buscar("errores", 'numero,mensaje,nota,error', $where);
+        echo json_encode($datos);
+    }
+    
+    public function verBlacklist() {
+        $data = $this->input->post();
+        $where = "idbase=" . $data["idbase"] . " and error ILIKE '%LISTA NEGRA%' limit 20";
         $datos = $this->CargaexcelModel->Buscar("errores", 'numero,mensaje,nota,error', $where);
         echo json_encode($datos);
     }
