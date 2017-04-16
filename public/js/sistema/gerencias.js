@@ -8,15 +8,13 @@ function Gerencias() {
                     "R<'row'<'col-sm-4'l><'col-sm-2 toolbar text-right'><'col-sm-3'B><'col-sm-3'f>>" +
                     "<'row'<'col-sm-12't>>" +
                     "<'row'<'col-xs-3 col-sm-3 col-md-3 col-lg-3'i><'col-xs-6 col-sm-6 col-md-6 col-lg-6 text-center'p><'col-xs-3 col-sm-3 col-md-3 col-lg-3'>>",
-            buttons: [
-                'excelHtml5',
-                'csvHtml5',
-                'pdfHtml5'
-            ],
             processing: true,
             processing: true,
             serverSide: true,
-            ajax: "../reportes/getGerencias",
+            ajax: {
+                url: "../reportes/getGerencias",
+                method: "POST",
+            },
             columns: [
                 {data: "gerencia"},
                 {data: "codigo_gerencia"},
@@ -33,6 +31,11 @@ function Gerencias() {
                         return '<a href="#" onclick="obj.show(' + full.id + ')">' + data + '</a>';
                     }
                 }
+            ],
+            buttons: [
+                'excelHtml5',
+                'csvHtml5',
+                'pdfHtml5'
             ],
             "language": {
                 "sProcessing": "Procesando...",
