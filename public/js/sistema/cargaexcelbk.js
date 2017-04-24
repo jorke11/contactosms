@@ -58,7 +58,7 @@ $(function () {
 
             } else {
 
-                var res = preCarga2("cargaexceltest/preCarga");
+                var res = preCarga2("cargaexcel/preCarga");
 
 
 
@@ -95,7 +95,7 @@ $(function () {
 
     $("#descargaExcel").click(function () {
         var idbase = objexcel.idbase;
-        window.open('cargaexceltest/excelErrores/' + idbase, '_blank');
+        window.open('cargaexcel/excelErrores/' + idbase, '_blank');
     });
 
     $("#continuar").click(function () {
@@ -107,7 +107,7 @@ $(function () {
             $("#registrosOk").addClass("hidden");
             $("#descargaExcel").addClass("hidden");
             $(".modalaviso").modal("hide");
-            subirArchivos("cargaexceltest/cargaExcel", fecha);
+            subirArchivos("cargaexcel/cargaExcel", fecha);
         } else {
             $("#registrosOk").addClass("hidden");
             $("#descargaExcel").addClass("hidden");
@@ -117,7 +117,7 @@ $(function () {
             objeto.fechaprogramado = $("#frmfecha #fecha").val();
             $("#subir").attr("disabled", true);
             $(".cargando").removeClass("hidden");
-            var res = crud(objeto, 'cargaexceltest/cargaExcel'), envioefectivo = 0;
+            var res = crud(objeto, 'cargaexcel/cargaExcel'), envioefectivo = 0;
 
             res.success(function (data) {
                 objexcel = data;
@@ -129,7 +129,7 @@ $(function () {
                 $("#codigorevision").html(data.idbase);
                 $("#regbuenos").html('<strong><a href="#" onclick=verBase(' + data.idbase + ')>Vista Previa ' + data.ok + ' SMS</a></string>');
 //                $("#regerrores").html(data.errores + " SMS");
-                $("#regerrores").html('<strong><a href="#" onclick=verErrores(' + data.idbase + ')>Vista Errores ' + data.errores + ' SMS</a><br><br><a href="#" onclick=verBlacklist(' + data.idbase + ')>Vista Blacklist ' + data.blacklist + ' SMS</a></string>');
+                $("#regerrores").html('<strong><a href="#" onclick=verErrores(' + data.idbase + ')>Vista Errores ' + data.errores + ' SMS</a></string>');
                 $("#regdobles").html("<span class='" + clase + "'>" + data.duplicados + " SMS </span>");
 
                 if (data.cupo != "undefined") {
@@ -139,7 +139,7 @@ $(function () {
                     $("#cupo").html('<b>' + (data.cupo.disponible) + '</b>');
                 }
 
-                if (data.errores > 0 || data.blacklist > 0) {
+                if (data.errores > 0) {
                     $("#descargaExcel").removeClass("hidden");
                 } else {
                     $("#descargaExcel").addClass("hidden");
@@ -184,7 +184,7 @@ $(function () {
         obj.idbase = objexcel.idbase;
         obj.tipo = 'confirmado';
         $("#nuevo").attr("disabled", false);
-        var res = crud(obj, 'cargaexceltest/procesarCarga');
+        var res = crud(obj, 'cargaexcel/procesarCarga');
         res.success(function (data) {
 
             if (data.errores != undefined) {
@@ -205,7 +205,7 @@ $(function () {
         obj.idbase = objexcel.idbase;
         obj.tipo = "cancelado";
         $("#nuevo").attr("disabled", false);
-        var res = crud(obj, 'cargaexceltest/procesarCarga');
+        var res = crud(obj, 'cargaexcel/procesarCarga');
         res.success(function (data) {
             $("#confirmacioncarga").attr("disabled", true);
             mensaje("alertaconfimacion", 'error', "<b>" + data.mensaje + "!</b>");
@@ -236,26 +236,7 @@ function verErrores(id) {
     obj.idbase = id;
     $(".modalbase").modal("show");
     $("#tablabase tbody").empty();
-    var res = crud(obj, 'cargaexceltest/verErrores');
-    res.success(function (data) {
-        txt = '';
-        $.each(data, function (i, val) {
-            txt += '<tr>';
-            txt += '<td>' + val["numero"] + '</td>';
-            txt += '<td>' + val["mensaje"] + '</td>';
-            txt += '<td>' + val["nota"] + '</td>';
-            txt += '</tr>';
-        })
-        $("#tablabase tbody").html(txt);
-    })
-}
-
-function verBlacklist(id) {
-    var obj = {}, txt = '';
-    obj.idbase = id;
-    $(".modalbase").modal("show");
-    $("#tablabase tbody").empty();
-    var res = crud(obj, 'cargaexceltest/verBlacklist');
+    var res = crud(obj, 'cargaexcel/verErrores');
     res.success(function (data) {
         txt = '';
         $.each(data, function (i, val) {
@@ -273,7 +254,7 @@ function verBase(id) {
     var obj = {}, txt = '';
     obj.idbase = id;
     $(".modalbase").modal("show");
-    var res = crud(obj, 'cargaexceltest/verBase');
+    var res = crud(obj, 'cargaexcel/verBase');
     res.success(function (data) {
         txt = '';
         $.each(data, function (i, val) {
@@ -334,7 +315,7 @@ function trash() {
     var objeto = {};
     $(".cargando").addClass("hidden");
     objeto.idbase = $("#infobase").val();
-    var res = crud(objeto, 'cargaexceltest/borrarArchivo', 'JSON');
+    var res = crud(objeto, 'cargaexcel/borrarArchivo', 'JSON');
 }
 
 var contador = 0;
@@ -352,7 +333,7 @@ function Reloj() {
 function CargaExcel(objeto) {
     var texto = '';
     $.ajax({
-        url: 'cargaexceltest/cargaExcel',
+        url: 'cargaexcel/cargaExcel',
         type: "POST",
         data: objeto,
         dataType: "JSON",
@@ -389,14 +370,14 @@ function CargaExcel(objeto) {
 
 
 function leerRegistros(objeto) {
-    var res = crud(objeto, "cargaexceltest/cuentaRegistros", 'JSON');
+    var res = crud(objeto, "cargaexcel/cuentaRegistros", 'JSON');
     res.success(function (data) {
         totalregistros = data.registros;
     })
 }
 
 function traeRegistros(objeto) {
-    var res = crud(objeto, "cargaexceltest/otroRegistros", 'JSON');
+    var res = crud(objeto, "cargaexcel/otroRegistros", 'JSON');
     res.success(function (data) {
         contador = data.registros;
     })

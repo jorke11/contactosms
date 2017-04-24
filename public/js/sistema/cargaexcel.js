@@ -129,7 +129,7 @@ $(function () {
                 $("#codigorevision").html(data.idbase);
                 $("#regbuenos").html('<strong><a href="#" onclick=verBase(' + data.idbase + ')>Vista Previa ' + data.ok + ' SMS</a></string>');
 //                $("#regerrores").html(data.errores + " SMS");
-                $("#regerrores").html('<strong><a href="#" onclick=verErrores(' + data.idbase + ')>Vista Errores ' + data.errores + ' SMS</a></string>');
+                $("#regerrores").html('<strong><a href="#" onclick=verErrores(' + data.idbase + ')>Vista Errores ' + data.errores + ' SMS</a><br><br><a href="#" onclick=verBlacklist(' + data.idbase + ')>Vista Blacklist ' + data.blacklist + ' SMS</a></string>');
                 $("#regdobles").html("<span class='" + clase + "'>" + data.duplicados + " SMS </span>");
 
                 if (data.cupo != "undefined") {
@@ -139,7 +139,7 @@ $(function () {
                     $("#cupo").html('<b>' + (data.cupo.disponible) + '</b>');
                 }
 
-                if (data.errores > 0) {
+                if (data.errores > 0 || data.blacklist > 0) {
                     $("#descargaExcel").removeClass("hidden");
                 } else {
                     $("#descargaExcel").addClass("hidden");
@@ -237,6 +237,25 @@ function verErrores(id) {
     $(".modalbase").modal("show");
     $("#tablabase tbody").empty();
     var res = crud(obj, 'cargaexcel/verErrores');
+    res.success(function (data) {
+        txt = '';
+        $.each(data, function (i, val) {
+            txt += '<tr>';
+            txt += '<td>' + val["numero"] + '</td>';
+            txt += '<td>' + val["mensaje"] + '</td>';
+            txt += '<td>' + val["nota"] + '</td>';
+            txt += '</tr>';
+        })
+        $("#tablabase tbody").html(txt);
+    })
+}
+
+function verBlacklist(id) {
+    var obj = {}, txt = '';
+    obj.idbase = id;
+    $(".modalbase").modal("show");
+    $("#tablabase tbody").empty();
+    var res = crud(obj, 'cargaexcel/verBlacklist');
     res.success(function (data) {
         txt = '';
         $.each(data, function (i, val) {

@@ -7,3 +7,4 @@ tmp/
 !*/cache/index.html
 !*/cache/.htaccess
 
+application/config/databases.php

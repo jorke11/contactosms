@@ -29,7 +29,7 @@
 </script>
 <script src="<?php base_url() ?>public/js/sistema/fechas.js"></script>
 <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
-<script src="<?php echo base_url() ?>public/js/sistema/cargaexceltest.js"></script>
+<script src="<?php echo base_url() ?>public/js/sistema/cargaexcel.js"></script>
 <div class="container">
     <div class="row">
         <div class="col-lg-6 col-md-6 col-sm-6 col-center">

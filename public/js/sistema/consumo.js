@@ -1,8 +1,16 @@
 function Consumo() {
     this.init = function () {
         this.table();
+        $("#ffinal").datetimepicker(
+                {format:'Y-m-d'}
+                );
+        $("#btnBuscar").click(function(){
+            obj.table();
+        });
     }
     this.table = function () {
+        var param={};
+        param.ffinal=$("#ffinal").val();
         return $('#tbl').DataTable({
             dom:
                     "R<'row'<'col-sm-4'l><'col-sm-2 toolbar text-right'><'col-sm-3'B><'col-sm-3'f>>" +
@@ -11,8 +19,12 @@ function Consumo() {
             buttons: [
                 'excelHtml5',
             ],
-            ajax: "../reportes/getConsumo",
-
+            ajax:{ 
+                url:"../reportes/getConsumo",
+                method:'POST',
+                data:param
+            },
+            destroy:true,
             order: [[1, 'ASC']],
             aoColumnDefs: [
                 {
