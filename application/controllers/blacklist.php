@@ -30,6 +30,11 @@ class Blacklist extends MY_Controller {
     }
 
     public function getList() {
+
+        if ($this->session->userdata("idperfil") != 1) {
+            $this->datatables->where("user_id", $this->session->userdata("idusuario"));
+        }
+
         echo $this->datatables
                 ->select("b.id,b.numero,u.usuario,b.date_insert")
                 ->from("blacklist b")
@@ -128,21 +133,28 @@ class Blacklist extends MY_Controller {
         $user = ($this->session->userdata("idperfil") == 1 && $data["idusuario"] != "0") ? $data["idusuario"] : $this->session->userdata("idusuario");
         foreach ($sheetData as $i => $value) {
             if ($i > 1) {
-                $where = "numero = '" . $value["A"] . "' and user_id=" . $user;
-                $com = $this->AdministradorModel->buscar("blacklist", '*', $where, 'row');
+                
+                //$validaNum = $this->validaNumero($value["A"]);
+                if ($value["A"] !='') {
+                    $where = "numero = '" . $value["A"] . "' and user_id=" . $user;
+                    $com = $this->AdministradorModel->buscar("blacklist", '*', $where, 'row');
 
-                $insert["user_id"] = $user;
-                $insert["numero"] = $value["A"];
-                $insert["status_id"] = 3;
-                $insert["archivo_id"] = $archivo_id;
+                    $insert["user_id"] = $user;
+                    $insert["numero"] = $value["A"];
+                    $insert["status_id"] = 3;
+                    $insert["archivo_id"] = $archivo_id;
 
-                if ($com != false) {
-                    $insert["date_update"] = date("Y-m-d H:i");
-                    $this->AdministradorModel->update("blacklist", $com["id"], $insert);
-                } else {
-                    $insert["date_insert"] = date("Y-m-d H:i");
-                    $this->AdministradorModel->insert("blacklist", $insert);
-                }
+                    if ($com != false) {
+                        $insert["date_update"] = date("Y-m-d H:i");
+                        $this->AdministradorModel->update("blacklist", $com["id"], $insert);
+                    } else {
+                        $insert["date_insert"] = date("Y-m-d H:i");
+                        $this->AdministradorModel->insert("blacklist", $insert);
+                    }
+                } 
+                //else {
+//                    $this->insertaErrores($validaNum[1], $value, $archivo_id, $i);
+                //}
             }
         }
 
@@ -150,6 +162,57 @@ class Blacklist extends MY_Controller {
         $resp["data"] = $this->AdministradorModel->buscar("blacklist", '*', $where);
         $resp["archivo_id"] = $archivo_id;
         echo json_encode($resp);
+    }
+
+    function insertaErrores($msj, $arreglo, $idbase, $fila) {
+        $error["mensaje"] = $this->LimpiaMensaje((isset($arreglo[2]) ? $arreglo[2] : ''));
+        $error["numero"] = $arreglo[1];
+        $error["error"] = $msj;
+        $error["estado"] = 3;
+        $error["idbase"] = $idbase;
+        $error["fila"] = $fila;
+        $error["fecha"] = date("Y-m-d H:i:s");
+        $this->CargaexcelModel->insert("errores", $error);
+    }
+
+    function validaNumero($numero = NULL) {
+        $numero = trim($numero);
+        $rta = array();
+        if ($numero == NULL) {
+            $rta[] = FALSE;
+            $rta[] = 'El numero vacio';
+        } else {
+            if (strlen($numero) > 10) {
+                $rta[] = FALSE;
+                $rta[] = 'El numero largo';
+            } else if (strlen($numero) < 10) {
+                $rta[] = FALSE;
+                $rta[] = 'El numero corto';
+            } else {
+                $existe = $this->validaPrefijo($numero);
+
+                if ($existe != FALSE) {
+                    $num = substr($numero, 3, 10);
+                    if ($num == '0000000' || $num[0] < 2) {
+                        $rta[] = FALSE;
+                        $rta[] = 'Numero Invalido';
+                    } else {
+                        if (is_numeric($num)) {
+                            $rta[] = TRUE;
+                            $rta[] = $numero;
+                        } else {
+                            $rta[] = FALSE;
+                            $rta[] = 'El numero Contiene Letras';
+                        }
+                    }
+                } else {
+                    $rta[] = FALSE;
+                    $rta[] = 'No existe el operador';
+                }
+            }
+        }
+
+        return $rta;
     }
 
 }

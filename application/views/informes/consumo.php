@@ -30,8 +30,8 @@
             <table class="table" id="tbl">
                 <thead>
                     <tr>
-                        <th>Nit</th>
                         <th>Usuario</th>
+                        <th>Nit</th>
                         <th>Consumo</th>
                         <th>Cupo</th>
                     </tr>

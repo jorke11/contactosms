@@ -154,21 +154,54 @@ class Reportes extends MY_Controller {
 
     public function getConsumo() {
         $draw = 1;
-        $in=$this->input->post();
-        
-        $sql="
-            select d.nit,a.usuario,count(b.id), e.maximo
-            from usuarios a, registros b, bases c, empresas d, servicios e
-            where b.fechaenvio > '" . date("Y-m-01") . "' and b.fechaenvio <= '" . $in["ffinal"] . " 23:59' 
-            and b.idbase = c.id and c.idusuario = a.id 
-            and a.idempresa = d.id and a.idservicio = e.id
-            group by 1,2,4 order by 1
+        $in = $this->input->post();
 
-               ";
+        $sql = "
+             select a.id,a.usuario, count(b.id) as consumo
+            from usuarios a, registros b, bases c
+            where b.fechaenvio > '" . date("Y-m-01") . " 00:00' and b.fechaenvio <= '" . $in["ffinal"] . " 23:59'
+            and b.idbase = c.id and c.idusuario = a.id 
+            and b.estado='1'
+            group by 1,2 order by 2
+            
+                ";
+       
         $datos = $this->AdministradorModel->ejecutar($sql);
-        $respuesta = $this->dataTable($datos);
-        $respuesta["draw"] = 1;
-        echo json_encode($respuesta);
+
+        foreach ($datos as $i => $value) {
+
+
+            $query = "
+                    select d.nit,e.maximo-a.historicos  as maximo
+            from usuarios a, empresas d, servicios e
+            where a.idempresa = d.id and a.idservicio = e.id
+            and a.id =" . $value["id"];
+
+            $param = $this->AdministradorModel->ejecutar($query);
+            if (count($param) > 0) {
+                $consumo=$datos[$i]["consumo"];
+                unset($datos[$i]["consumo"]);
+                unset($datos[$i]["id"]);
+                $datos[$i]["nit"] = $param[0]["nit"];
+                $datos[$i]["consumo"] =$consumo;
+                $datos[$i]["maximo"] = $param[0]["maximo"]-$consumo;
+            }
+        }
+        
+        
+        /* $sql="
+          select d.nit,a.usuario,count(b.id), e.maximo
+          from usuarios a, registros b, bases c, empresas d, servicios e
+          where b.fechaenvio > '" . date("Y-m-01") . "' and b.fechaenvio <= '" . $in["ffinal"] . " 23:59'
+          and b.idbase = c.id and c.idusuario = a.id
+          and a.idempresa = d.id and a.idservicio = e.id
+          group by 1,2,4 order by 1
+          "; */
+
+                
+        //$respuesta = $this->dataTable($datos);
+        echo json_encode($this->dataTable($datos));
+        //echo json_encode($datos);
     }
 
 }

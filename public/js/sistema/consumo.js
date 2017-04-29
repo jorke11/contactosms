@@ -19,21 +19,15 @@ function Consumo() {
             buttons: [
                 'excelHtml5',
             ],
+           
             ajax:{ 
                 url:"../reportes/getConsumo",
                 method:'POST',
                 data:param
             },
             destroy:true,
-            order: [[1, 'ASC']],
-            aoColumnDefs: [
-                {
-                    aTargets: [1],
-                    mRender: function (data, type, full) {
-                        return '<a href="#" onclick="obj.show(' + full.id + ')">' + data + '</a>';
-                    }
-                }
-            ],
+           
+           
             "language": {
                 "sProcessing": "Procesando...",
                 "sLengthMenu": "Mostrar _MENU_ registros",
