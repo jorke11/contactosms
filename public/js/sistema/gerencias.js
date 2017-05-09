@@ -33,7 +33,13 @@ function Gerencias() {
                 }
             ],
             buttons: [
-                'excelHtml5',
+                {
+                    text: 'Excel',
+                    action: function (e, dt, node, config) {
+                        obj.downloadExcel();
+
+                    }
+                },
                 'csvHtml5',
                 'pdfHtml5'
             ],
@@ -62,6 +68,10 @@ function Gerencias() {
                 }
             }
         });
+    }
+
+    this.downloadExcel = function () {
+        window.open('getGerenciasExcel');
     }
 }
 

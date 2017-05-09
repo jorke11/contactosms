@@ -7,6 +7,8 @@ class Reportes extends MY_Controller {
 
     public function __construct() {
         parent::__construct();
+        $this->load->library('excel');
+        $this->load->library("reader");
         $this->load->model("ReportesModel");
     }
 
@@ -165,7 +167,7 @@ class Reportes extends MY_Controller {
             group by 1,2 order by 2
             
                 ";
-       
+
         $datos = $this->AdministradorModel->ejecutar($sql);
 
         foreach ($datos as $i => $value) {
@@ -179,16 +181,16 @@ class Reportes extends MY_Controller {
 
             $param = $this->AdministradorModel->ejecutar($query);
             if (count($param) > 0) {
-                $consumo=$datos[$i]["consumo"];
+                $consumo = $datos[$i]["consumo"];
                 unset($datos[$i]["consumo"]);
                 unset($datos[$i]["id"]);
                 $datos[$i]["nit"] = $param[0]["nit"];
-                $datos[$i]["consumo"] =$consumo;
-                $datos[$i]["maximo"] = $param[0]["maximo"]-$consumo;
+                $datos[$i]["consumo"] = $consumo;
+                $datos[$i]["maximo"] = $param[0]["maximo"] - $consumo;
             }
         }
-        
-        
+
+
         /* $sql="
           select d.nit,a.usuario,count(b.id), e.maximo
           from usuarios a, registros b, bases c, empresas d, servicios e
@@ -198,10 +200,72 @@ class Reportes extends MY_Controller {
           group by 1,2,4 order by 1
           "; */
 
-                
+
         //$respuesta = $this->dataTable($datos);
         echo json_encode($this->dataTable($datos));
         //echo json_encode($datos);
+    }
+
+    public function getGerenciasExcel() {
+        $this->datatables->set_database("natura");
+
+        $query = "
+                    select gerencia,codigo_gerencia,cupo_gerencia,sector,codigo_sector,cupo_sector
+            from datagerencias";
+
+        $datos = $this->AdministradorModel->ejecutar($query);
+        /**
+         * Se instancia el objeto '$objPHPExcel' para crear el archivo
+         */
+        $objPHPExcel = new PHPExcel();
+        $objPHPExcel->getProperties()->setCreator("Contacto sms"); // Nombre del autor->setLastModifiedBy("Contacto sms") //Ultimo usuario que lo modificó->setTitle("Reporte Errrores Excel") // Titulo->setSubject("Reporte Errrores Excel") //Asunto->setDescription("Reporte de Errores") //Descripción->setKeywords("Reporte de Errores") //Etiquetas->setCategory("Reporte excel"); //Categorias
+
+
+        $tituloReporte = "Gerencias";
+        $titulosColumnas = array('GERENCIA', 'CODIGO_GERENCIA',
+            'CUPO_GERENCIA', 'SECTOR', "CODIGO_SECTOR", "CUPO_SECTOR");
+
+
+// Se agregan los titulos del reporte
+        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('A1', $titulosColumnas[0])
+                ->setCellValue('B1', $titulosColumnas[1])
+                ->setCellValue('C1', $titulosColumnas[2])
+                ->setCellValue('D1', $titulosColumnas[3])
+                ->setCellValue('E1', $titulosColumnas[4])
+                ->setCellValue('F1', $titulosColumnas[5]);
+
+        $cont = 2;
+        /**
+         * Se llena el archivo
+         */
+        foreach ($datos as $i => $value) {
+            $objPHPExcel->setActiveSheetIndex(0)->
+                    setCellValue('A' . $cont, $value['gerencia'])
+                    ->setCellValue('B' . $cont, $value['codigo_gerencia'])
+                    ->setCellValue('C' . $cont, $value['cupo_gerencia'])
+                    ->setCellValue('D' . $cont, $value['sector'])
+                    ->setCellValue('E' . $cont, $value['codigo_sector'])
+                    ->setCellValue('F' . $cont, $value['cupo_sector']);
+            $cont++;
+        }
+
+        /**
+         * Se agrega titulo
+         */
+        $objPHPExcel->getActiveSheet()->setTitle('Gerencias');
+        $objPHPExcel->setActiveSheetIndex(0);
+        /**
+         * Se agregan los encabezados para que se genere la descarga
+         */
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename=Gerencias_' . date("Y-m-d") . '.xls');
+        header('Cache-Control: max-age=0');
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+        $objWriter->save('php://output');
+        exit;
+
+        print_r($param);
+        exit;
     }
 
 }

@@ -18,7 +18,7 @@ function BlackList() {
             data: param,
             dataType: "JSON",
             success: function (data) {
-                toastr.success("Operacion realizada");
+
                 table.ajax.reload();
             }
         });
@@ -36,7 +36,7 @@ function BlackList() {
             processData: false,
             dataType: "JSON",
             success: function (data) {
-                //toastr.success("Operacion realizada");
+                toastr.success("Operacion realizada");
                 $("#archivo_id").val(data.archivo_id);
                 $("#btnConfirmation").attr("disabled", false);
                 obj.tableExcel(data.data);
