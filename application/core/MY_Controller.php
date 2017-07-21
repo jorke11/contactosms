@@ -42,7 +42,8 @@ class MY_Controller extends CI_Controller {
                 case 1:{
 //                        print_x(get_defined_constants());exit;
 //                        $ruta="/var/www/html/contactosms.new/public/menu/menu1.ini";
-                        $ruta=FCPATH."public\menu\menu1.ini";
+//                        $ruta=FCPATH."public\menu\menu1.ini";
+                        $ruta=FCPATH."public/menu/menu1.ini";
                         break;
                         }
     
