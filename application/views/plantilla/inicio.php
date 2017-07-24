@@ -27,9 +27,10 @@
 <script>
 
 </script>
+<script src="<?php echo base_url() ?>public/js/propias/plugin.js"></script>
 <script src="<?php base_url() ?>public/js/sistema/fechas.js"></script>
 <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
-<script src="<?php echo base_url() ?>public/js/sistema/cargaexcel.js"></script>
+
 <div class="container">
     <div class="row">
         <div class="col-lg-6 col-md-6 col-sm-6 col-center">
@@ -37,7 +38,7 @@
                 <div class="panel-heading">
                     <div class="row">
                         <div class="col-lg-7 col-md-3 col-sm-3"><h3 class="panel-title"><b>Upload XLS File</b></h3></div>
-                        <div class="col-lg-3 col-md-3 col-sm-3 col-right"><a href="<?php echo base_url() ?>formatos/formatoenvio.xls"><b>Descarga Plantilla</b></a></div>
+                        <div class="col-lg-3 col-md-3 col-sm-3 col-right"><a href="<?php echo base_url() ?>formatos/plantilla_upload.xls"><b>Descarga Plantilla</b></a></div>
                     </div>
 
                 </div>
@@ -48,6 +49,19 @@
 
                                 <div class="col-lg-12 col-md-12 col-sm-12">
 
+                                    <div class="row">
+                                        <div class="form-group">
+                                            <label for="exampleInputEmail1">Mensaje</label>
+                                            <textarea class="form-control" id="message" rows="3" name="message" placeholder="Escribe aqui el Mensaje" style="resize: none"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            <span id="contentMessage"></span>
+                                        </div>
+                                    </div>
+                                    <br>
+                                    
                                     <div class="row">
                                         <div class="col-lg-3 col-md-3 col-sm-3"><b>Archivo (.xls)</b></div>    
                                         <div class="col-lg-4 col-md-4 col-sm-4">
@@ -96,42 +110,6 @@
         </div>    
     </div>
 
-    <div class="row">
-        <div class="col-lg-6 col-center">
-
-            <div class="panel panel-default">
-                <div class="panel-body">
-                    <form id="frmfecha">
-                        <div class="row">
-                            <div class="col-lg-4"><b>Establecer Fecha de envio</b></div>
-                            <div class="col-lg-6">
-                                <div class="input-group">
-                                    <input type="text" class="form-control fechas" id="fecha" name="fecha" placeholder="dd-md-YYYY">
-                                    <span class="input-group-btn">
-                                        <button class="btn btn-default" type="button" id="boton">
-                                            <span class="glyphicon glyphicon-calendar"></span>
-                                        </button>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="espacio"></div>
-                        <div class="row">
-                            <div class="col-lg-12">
-                                <p style="color:red;font-size:14px"><b>IMPORTANTE</b>: Para lo envios programados debe indicar la fecha y hora en la base de datos
-                                    como esta estipulado en la guía o establecerla en la opción de la plataforma <b>ANTES de SUBIR</b> la
-                                    base de datos de la plataforma. De lo contrario el envio se realizara inmediatamente</p>
-                            </div>
-                        </div>
-
-                    </form>
-                </div>
-            </div>
-
-
-        </div>
-    </div>
-
     <div class="espacio"></div>
 
     <div class="row">
@@ -152,27 +130,6 @@
                         </div>
                     </div>
 
-                    <div class="espacio"></div>
-                    <div class="row">
-                        <div class="col-lg-12">
-                            <input type="checkbox" id="habilitafecha">&nbsp;Fecha Programada
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-lg-12">
-                            <div class="input-group">
-                                <input type="text" class="form-control fechas" disabled id="fechaprogramada" name="fechaprogramada" placeholder="dd-md-YYYY">
-
-                                <span class="input-group-btn">
-                                    <button class="btn btn-default" type="button">
-                                        <span class="glyphicon glyphicon-calendar"></span>
-                                    </button>
-                                </span>
-
-
-                            </div><!-- /input-group -->
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -412,3 +369,4 @@
 
 
 
+<script src="<?php echo base_url() ?>public/js/sistema/plantilla.js"></script>

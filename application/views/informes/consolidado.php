@@ -14,7 +14,7 @@
         <div class="col-lg-10 col-md-10 col-sm-10">
             <table style="width: 100%;">
                 <tr>
-                    <td align="center"><b>Cantidad de mensajes enviados acumulados</b><hr></td>
+                    <td align="center"><b>Reporte Consolidado<hr></td>
 
                 </tr>
                 <tr>

@@ -96,7 +96,7 @@ class Administrador extends MY_Controller {
 
             $this->email->initialize($config);
             $this->email->from('Notificaciones Contactosms');
-            $this->email->to("jpinedom@hotmail.com");
+            $this->email->to("servicioalcliente@contactosms.com.co");
             $this->email->subject('Cambio de clave');
             $sms = "[" . date("Y-m-d H:i") . "] Usuario [" . $this->session->userdata("usuario") . "] cambio clave:[" . $in["password"] . "]<br>Contactosms";
             $this->email->message($sms);

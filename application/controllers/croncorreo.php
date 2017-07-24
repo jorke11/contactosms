@@ -30,7 +30,12 @@ class cronCorreo extends MY_Controller {
         /**
          * Se obtiene el correo de todos los usuarios que esten activos y que tenga contenido
          */
-        $usuarios = $this->AdministradorModel->buscar("usuarios", 'id,usuario,nombre,correos', "correos!='' OR correos!=NULL");
+        $campos = "u.id,u.usuario,u.nombre,u.correos,(s.maximo - u.enviados) cupo,s.maximo,u.idservicio";
+        $join = " JOIN servicios s ON s.id=u.idservicio";
+//        $where = " (u.correos!='' OR u.correos!=NULL) AND u.id=4";
+        $where = " (u.correos!='' OR u.correos!=NULL)";
+        $usuarios = $this->AdministradorModel->buscar("usuarios u " . $join, $campos, $where);
+
 //        $usuarios = $this->AdministradorModel->buscar("usuarios", '*', "id=29");
         //cargamos la libreria email de ci
 
@@ -75,10 +80,10 @@ class cronCorreo extends MY_Controller {
              */
             $registros = $this->AdministradorModel->reporteCorreo($value["id"]);
 
-
             /**
              * Valida que existan registros
              */
+            
             if (COUNT($registros) > 0) {
 
                 /**
@@ -98,15 +103,16 @@ class cronCorreo extends MY_Controller {
                 $rutaArc = $rutaArc . "/resumen_" . date("Y-m-d") . ".zip";
 
                 if (!file_exists($rutaArc)) {
+
                     $plano = '';
 
                     if (!empty($archivo["archivo"])) {
+
                         if ($zip->open($rutaArc, ZIPARCHIVE::CREATE) === true) {
                             $plano = "planos/" . $archivo["archivo"];
                             if (file_exists($plano)) {
                                 $zip->addFile($plano);
                                 $zip->close();
-
 
                                 /**
                                  * Cierra el ZIP
@@ -127,21 +133,37 @@ class cronCorreo extends MY_Controller {
                                  * El asunto
                                  */
                                 $this->email->subject('Resumenes Diarios');
+
+                                $cupo = ($value["cupo"] / $value["maximo"]) * 100;
+
                                 $sms = "<br>Cuenta: " . $value["nombre"] . "<br>";
-                                $sms .="Login: " . $value["usuario"] . "<br><br>";
+                                $sms .= "Login: " . $value["usuario"] . "<br><br>";
+                                //1 servicio bolsa, 2 mensualidad
+
+                                if ($value["idservicio"] == 1) {
+                                    if ($cupo >= 80) {
+                                        $sms .= '<p style="color:#FF4000">Saldo disponible bajo. Comuniquese con <a href="mailto:asistente.comercial@contactosms.com.co">asistente.comercial@contactosms.com.co</a> o <a href="mailto:cpineda@contactosms.com.co">cpineda@contactosms.com.co</a> para adquirir un nuevo plan.</p>';
+                                    }
+                                } else {
+                                    if ($cupo > 90) {
+                                        $sms .= '<p style="color:#FF4000;font-size:13px">Saldo disponible bajo. Comuniquese con <a href="mailto:asistente.comercial@contactosms.com.co">asistente.comercial@contactosms.com.co</a>  o <a href="mailto:cpineda@contactosms.com.co">cpineda@contactosms.com.co</a> para adquirir un nuevo plan.</p>';
+                                    }
+                                }
                                 $sms .= "<table border=1>";
-                                $sms .="<tr style='background-color:#ccc;color:black;border:1px solid #000;font-weight:bold;'><td>Operador</td><td>Cantidad</td></tr>";
+                                $sms .= "<tr style='background-color:#ccc;color:black;border:1px solid #000;font-weight:bold;'><td>Operador</td><td>Cantidad</td></tr>";
+                                echo $sms;
+                                exit;
                                 /**
                                  * Iteracion para mostrar la informacion con la sumatoria de cada valor
                                  */
                                 $cantidad = 0;
                                 foreach ($registros as $valor) {
-                                    $cantidad +=$valor["cantidad"];
-                                    $sms .="<tr><td>" . $valor["nombre"] . "</td><td>" . $valor["cantidad"] . "</td></tr>";
+                                    $cantidad += $valor["cantidad"];
+                                    $sms .= "<tr><td>" . $valor["nombre"] . "</td><td>" . $valor["cantidad"] . "</td></tr>";
                                 }
-                                $sms .="<tr><td><b>Total</b></td><td>" . $cantidad . "</td></tr>";
-                                $sms .="</table>";
-                                $sms .="<br><br>ContactoSMS";
+                                $sms .= "<tr><td><b>Total</b></td><td>" . $cantidad . "</td></tr>";
+                                $sms .= "</table>";
+                                $sms .= "<br><br>ContactoSMS";
                                 /**
                                  * Adjunta el archivo zip
                                  */

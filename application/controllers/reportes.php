@@ -277,29 +277,29 @@ class Reportes extends MY_Controller {
     }
 
     public function getConsolidado() {
+	$role = "";
+
+	if($this->session->userdata("idperfil")!=1){
+		$role="WHERE u.id=".$this->session->userdata("idusuario");	
+	}
+	
         $sql = "
             select u.id,u.usuario,
-            (
-                    select count(r.id) 
-                    from registros r
-                    JOIN bases b ON b.id=r.idbase
-                    where r.fechacargue between '" . date("Y-m-") . "01 00:00' and '" . date("Y-m-d") . " 23:59'
-                    AND r.estado='2' AND b.idusuario=u.id
-            ) enviados,
-            ser.maximo-(
-                    select count(r.id) 
-                    from registros r
-                    JOIN bases b ON b.id=r.idbase
-                    where r.fechacargue between '" . date("Y-m-") . "01 00:00' and '" . date("Y-m-d") . " 23:59'
-                    AND r.estado='2' AND b.idusuario=u.id
-            ) disponible, CASE WHEN ser.tiposervicio=1 THEN 'Mensual' ELSE 'Bolsa' END servicio,ser.tiposervicio
+            u.enviados enviados,
+            ser.maximo - u.enviados disponible, CASE WHEN ser.tiposervicio=1 THEN 'Mensual' ELSE 'Bolsa' END servicio,ser.tiposervicio
             from usuarios u
             JOIN servicios ser ON ser.id=u.idservicio
+	    $role
             ORDER by 3 DESC
             LIMIT 10
             ";
 
+          
+        
         $datos = $this->AdministradorModel->ejecutar($sql);
+//        $respuesta = $this->dataTable($datos);
+//        $respuesta["draw"] = 1;
+//        echo json_encode($respuesta);
         echo json_encode(array("data" => $datos));
     }
 
