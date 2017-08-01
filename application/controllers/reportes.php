@@ -291,7 +291,7 @@ class Reportes extends MY_Controller {
             JOIN servicios ser ON ser.id=u.idservicio
 	    $role
             ORDER by 3 DESC
-            LIMIT 10
+            
             ";
 
           

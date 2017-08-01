@@ -3,7 +3,7 @@
 if (!defined('BASEPATH'))
     exit('No direct script access allowed');
 
-class DescargaArchivo extends MY_Controller {
+class DescargaArchivoc extends MY_Controller {
 
     public function __construct() {
         parent::__construct();
@@ -17,7 +17,7 @@ class DescargaArchivo extends MY_Controller {
         /**
          * Se listan los archivos planos y se lo pasan  a la vista
          */
-        $data["vista"] = "informes/descargaarchivo";
+        $data["vista"] = "informes/descargaarchivoc";
         $this->load->view("template", $data);
     }
 

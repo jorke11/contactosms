@@ -5,7 +5,7 @@ $(function () {
         format: 'd/m/Y H:i',
         timepicker: true
     });
-    
+
     $("#message").cuentaPalabras("#contentMessage");
 
     $('#boton').datetimepicker({
@@ -25,8 +25,6 @@ $(function () {
             $("#panelconfig").addClass("open");
             $("#panelconfig").fadeIn();
         }
-
-
     })
 
     $(":file").change(function () {
@@ -59,35 +57,43 @@ $(function () {
                 }
 
             } else {
+                var msg = '';
+                if ($("#cargar #message").val() != '') {
+                    msg = $("#cargar #message").val();
 
-                var res = preCarga2("plantilla/preCarga");
+                    if (msg.indexOf("%campo1%") > 0) {
+                        
+                        var res = preCarga2("plantilla/preCarga");
+                        res.success(function (data) {
+                            $("#tablainfo tbody").empty();
+                            $("#tablaanterior tbody").empty();
+                            $("#infobase").val(data.idbase);
+                            $("#continuar").attr("disabled", false);
+                            $("#estado").html("<span style='color:green'>100% Completo</span>");
+                            html = "<tr><td><b>Registro a cargar</b></td><td>" + data.filas + "</td><tr>";
+                            html += "<tr><td><b>Nombre Archivo</b></td><td>" + data.nombreactual + "</td></tr>";
+                            html2 = "<tr><td><b>Registro a cargados</b></td><td>" + data.registrosanterior + "</td><tr>";
+                            html2 += "<tr><td><b>Nombre Archivo</b></td><td>" + data.nombreaanterior + "</td></tr>";
 
+                            if (data.nombreactual == data.nombreaanterior) {
+                                $(".alerta").removeClass("hidden").html("<b>Probablemente este Subiendo la misma base Anterior!, Desea Continuar?</b>");
+                            } else {
+                                $("#msjcontinuar").html("<b>Desea Continuar?</b>");
+                                $(".alerta").addClass("hidden");
+                            }
 
+                            $("#tablainfo tbody").html(html);
+                            $("#tablaanterior tbody").html(html2);
+                            $("#idarchivo").val(data.idarchivo);
+                            $("#frmsubida #idbase").val(data.idbase);
 
-                res.success(function (data) {
-                    $("#tablainfo tbody").empty();
-                    $("#tablaanterior tbody").empty();
-                    $("#infobase").val(data.idbase);
-                    $("#continuar").attr("disabled", false);
-                    $("#estado").html("<span style='color:green'>100% Completo</span>");
-                    html = "<tr><td><b>Registro a cargar</b></td><td>" + data.filas + "</td><tr>";
-                    html += "<tr><td><b>Nombre Archivo</b></td><td>" + data.nombreactual + "</td></tr>";
-                    html2 = "<tr><td><b>Registro a cargados</b></td><td>" + data.registrosanterior + "</td><tr>";
-                    html2 += "<tr><td><b>Nombre Archivo</b></td><td>" + data.nombreaanterior + "</td></tr>";
-
-                    if (data.nombreactual == data.nombreaanterior) {
-                        $(".alerta").removeClass("hidden").html("<b>Probablemente este Subiendo la misma base Anterior!, Desea Continuar?</b>");
+                        });
                     } else {
-                        $("#msjcontinuar").html("<b>Desea Continuar?</b>");
-                        $(".alerta").addClass("hidden");
+                        alert("El text %campo1% y %campo2% son obligatorios!");
                     }
-
-                    $("#tablainfo tbody").html(html);
-                    $("#tablaanterior tbody").html(html2);
-                    $("#idarchivo").val(data.idarchivo);
-                    $("#frmsubida #idbase").val(data.idbase);
-
-                });
+                } else {
+                    alert("Mensaje vacio");
+                }
             }
 
         } else {

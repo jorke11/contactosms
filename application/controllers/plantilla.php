@@ -12,9 +12,11 @@ class Plantilla extends MY_Controller {
     private $estado;
     private $idbase = 0;
     public $mensaje;
+    public $programado;
 
     public function __construct() {
         parent::__construct();
+        date_default_timezone_set('America/Bogota');
         header('Content-Type: text/html; charset=UTF-8');
         /**
          * Se cargan las librerias necesarias
@@ -26,9 +28,9 @@ class Plantilla extends MY_Controller {
         $this->load->model("CargaexcelModel");
         $this->nombreArchivo = '';
         $this->mensaje = '';
+        $this->programado = null;
         $this->load->library('smpp');
         $this->idempresa = $this->session->userdata("idempresa");
-
 
         $this->estadoPerfil = ($this->session->userdata("idperfil") == 3) ? 6 : FALSE;
     }
@@ -168,6 +170,9 @@ class Plantilla extends MY_Controller {
              * Iteracion para almacenar los datos del archivo en un arreglo
              */
             $contador = 0;
+
+            PHPExcel_Shared_Date::ExcelToPHP($dateValue = 0, $adjustToTimezone = FALSE, $timezone = NULL);
+
             foreach ($datos->sheets[0]['cells'] as $cont => $value) {
                 if ($cont > 1) {
                     $contador++;
@@ -347,48 +352,61 @@ class Plantilla extends MY_Controller {
      * @param int $idbase
      * @return array
      */
+    function lz($num) {
+        return (strlen($num) < 2) ? "0{$num}" : $num;
+    }
+
     function agregaDatosSession($arreglo, $fila, $idbase) {
+        $UNIX_DATE = ($arreglo[5] - 25569) * 86400;
+        $arreglo[5] = gmdate("Y/m/d H:i:s", $UNIX_DATE);
+        $programado = explode(" ", $arreglo[5]);
 
+        $valFecha = $this->calculaFecha($programado[0], $programado[1]);
 
-        $validaNum = $this->validaNumero($arreglo[1]);
+        if ($valFecha[0] == true) {
 
-        if (isset($arreglo[3]) != '' && $arreglo[3] != '') {
-            if ($validaNum[0] == TRUE) {
-                if (!empty($arreglo[2]) && isset($arreglo[2])) {
-                    $validado = NULL;
-                    $nombres = array('numero', 'mensaje', 'nota');
-                    $campos = 'coalesce(enviados,0) + coalesce(pendientes,0) consumo';
-                    $consumo = $this->CargaexcelModel->buscar("usuarios", $campos, 'id=' . $this->idusuario, 'row');
-                    $servicio = $this->CargaexcelModel->buscar("servicios", 'coalesce(maximo,0) maximo', 'id=' . $this->session->userdata("idservicio"), 'row');
-                    $disponible = $servicio["maximo"] - $consumo["consumo"];
+            $validaNum = $this->validaNumero($arreglo[1]);
 
-                    if ($disponible >= 1) {
-                        $validado = $this->validaFila($arreglo);
-                        if (is_array($validado)) {
-                                
-                            if (isset($validado[1])) {
-                                $this->insertRegistros($validado);
-                                $validado = '';
+            if (isset($arreglo[3]) != '' && $arreglo[3] != '') {
+                if ($validaNum[0] == TRUE) {
+                    if (!empty($arreglo[2]) && isset($arreglo[2])) {
+                        $validado = NULL;
+                        $nombres = array('numero', 'mensaje', 'nota');
+                        $campos = 'coalesce(enviados,0) + coalesce(pendientes,0) consumo';
+                        $consumo = $this->CargaexcelModel->buscar("usuarios", $campos, 'id=' . $this->idusuario, 'row');
+                        $servicio = $this->CargaexcelModel->buscar("servicios", 'coalesce(maximo,0) maximo', 'id=' . $this->session->userdata("idservicio"), 'row');
+                        $disponible = $servicio["maximo"] - $consumo["consumo"];
+
+                        if ($disponible >= 1) {
+                            $validado = $this->validaFila($arreglo);
+                            if (is_array($validado)) {
+
+                                if (isset($validado[1])) {
+                                    $this->insertRegistros($validado);
+                                    $validado = '';
+                                } else {
+
+                                    $arregloTodo[] = $validado;
+                                    $this->insertRegistros($arregloTodo);
+                                    $arregloTodo = '';
+                                }
                             } else {
-                                
-                                $arregloTodo[] = $validado;
-                                $this->insertRegistros($arregloTodo);
-                                $arregloTodo = '';
+                                $this->insertaErrores(str_replace("error:", '', $validado), $arreglo, $idbase, $fila);
                             }
                         } else {
-                            $this->insertaErrores(str_replace("error:", '', $validado), $arreglo, $idbase, $fila);
+                            $this->insertaErrores("El usuario no cuenta con cupo suficiente", $arreglo, $idbase, $fila);
                         }
                     } else {
-                        $this->insertaErrores("El usuario no cuenta con cupo suficiente", $arreglo, $idbase, $fila);
+                        $this->insertaErrores("Contenido del mensaje vacio", $arreglo, $idbase, $fila);
                     }
                 } else {
-                    $this->insertaErrores("Contenido del mensaje vacio", $arreglo, $idbase, $fila);
+                    $this->insertaErrores($validaNum[1], $arreglo, $idbase, $fila);
                 }
             } else {
-                $this->insertaErrores($validaNum[1], $arreglo, $idbase, $fila);
+                $this->insertaErrores("Campo 1 es obligatorio", $arreglo, $idbase, $fila);
             }
         } else {
-            $this->insertaErrores("Campo 1 es obligatorio", $arreglo, $idbase, $fila);
+            $this->insertaErrores($valFecha[1], $arreglo, $idbase, $fila);
         }
     }
 
@@ -404,25 +422,26 @@ class Plantilla extends MY_Controller {
             $fecha = preg_replace("/(\d+)\D+(\d+)\D+(\d+)/", "$3-$2-$1", $fecha);
 
             $fecha = $fecha . ' ' . (($hora != NULL) ? $hora : date("H:i"));
+            $fecha = date("Y-m-d H:i:s", strtotime($fecha));
             $hoy = date('Y-m-d') . " 00:00";
             $futura = date('Y-m-d H:i:s', strtotime('+1 year', strtotime($hoy)));
             $rta = array();
 
-            if ($this->validateDate($fecha) == TRUE) {
-                if ($fecha < $hoy) {
-                    $rta[] = false;
-                    $rta[] = "FECHA ANTIGUA: " . $fecha;
-                } elseif ($fecha > $futura) {
-                    $rta[] = false;
-                    $rta[] = "FECHA FUTURA: " . $fecha;
-                } else {
-                    $rta[] = true;
-                    $rta[] = $fecha;
-                }
-            } else {
+//            if ($this->validateDate($fecha) == TRUE) {
+            if ($fecha < $hoy) {
                 $rta[] = false;
-                $rta[] = "Error en el formato de la fecha: " . $fecha;
+                $rta[] = "FECHA ANTIGUA: " . $fecha;
+            } elseif ($fecha > $futura) {
+                $rta[] = false;
+                $rta[] = "FECHA FUTURA: " . $fecha;
+            } else {
+                $rta[] = true;
+                $rta[] = $fecha;
             }
+//            } else {
+//                $rta[] = false;
+//                $rta[] = "Error en el formato de la fecha: " . $fecha;
+//            }
         }
         return $rta;
     }
@@ -438,7 +457,7 @@ class Plantilla extends MY_Controller {
         $existe = '';
         $smsdobles = 0;
         $preferencias = '';
-        
+
         $mensaje = $this->LimpiaMensaje($this->mensaje);
 
         if (isset($fila[3]) && $fila[3] != '') {
@@ -460,9 +479,7 @@ class Plantilla extends MY_Controller {
         $fila[3] = (isset($fila[3])) ? $fila[3] : '';
 
         $arreglo["nota"] = $this->LimpiaMensaje($fila[3]);
-        $arreglo["flash"] = (isset($fila[6]) && $fila[6] == 'SI') ? 1 : 0;
-        $arreglo["correo"] = (isset($fila[7])) ? $fila[7] : '';
-//        $arreglo["fechaprogramado"] = (isset($fila[4])) ? $fila[4] : '';
+        $arreglo["fechaprogramado"] = (isset($fila[5])) ? $fila[5] : '';
         /**
          * Se valida la longitud del dato segun su tipo
          */
@@ -562,7 +579,6 @@ class Plantilla extends MY_Controller {
         /**
          * Si no existe ningun error retorn el arreglo  de lo contrario retorne el error
          */
-        
         return ($errorSms == '') ? $arreglo : 'error:' . $errorSms;
     }
 

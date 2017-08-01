@@ -14,7 +14,6 @@ class cronCorreo extends MY_Controller {
         /**
          * Carga de librerias necesarioas para envio de correo
          */
-        $this->load->library('Mailer');
         $this->load->library('smpp');
 
 //        $this->load->library('Mandril');
@@ -27,15 +26,17 @@ class cronCorreo extends MY_Controller {
          * Se instancia un objeto de clase zip para comprimir archivos
          */
         $zip = new ZipArchive();
+
         /**
          * Se obtiene el correo de todos los usuarios que esten activos y que tenga contenido
          */
-        $campos = "u.id,u.usuario,u.nombre,u.correos,(s.maximo - u.enviados) cupo,s.maximo,u.idservicio";
+        $campos = "u.id,u.usuario,u.nombre,u.correos,(s.maximo - u.enviados) cupo,s.maximo,u.idservicio,s.tiposervicio";
         $join = " JOIN servicios s ON s.id=u.idservicio";
-//        $where = " (u.correos!='' OR u.correos!=NULL) AND u.id=4";
         $where = " (u.correos!='' OR u.correos!=NULL)";
+//        $where = " (u.correos!='' OR u.correos!=NULL)";
         $usuarios = $this->AdministradorModel->buscar("usuarios u " . $join, $campos, $where);
-
+        
+        
 //        $usuarios = $this->AdministradorModel->buscar("usuarios", '*', "id=29");
         //cargamos la libreria email de ci
 
@@ -83,7 +84,6 @@ class cronCorreo extends MY_Controller {
             /**
              * Valida que existan registros
              */
-            
             if (COUNT($registros) > 0) {
 
                 /**
@@ -97,7 +97,8 @@ class cronCorreo extends MY_Controller {
                  * Ruta para los archivos compresos
                  */
                 $crearuta = $_SERVER["DOCUMENT_ROOT"] . "/zip/" . $value["id"];
-
+//                $crearuta = "/var/www/html/contactosms.new/zip/" . $value["id"];
+                
                 $rutaArc = $this->crearRutaCarpeta($crearuta);
 
                 $rutaArc = $rutaArc . "/resumen_" . date("Y-m-d") . ".zip";
@@ -110,7 +111,9 @@ class cronCorreo extends MY_Controller {
 
                         if ($zip->open($rutaArc, ZIPARCHIVE::CREATE) === true) {
                             $plano = "planos/" . $archivo["archivo"];
+                            
                             if (file_exists($plano)) {
+                                
                                 $zip->addFile($plano);
                                 $zip->close();
 
@@ -141,18 +144,17 @@ class cronCorreo extends MY_Controller {
                                 //1 servicio bolsa, 2 mensualidad
 
                                 if ($value["idservicio"] == 1) {
-                                    if ($cupo >= 80) {
+                                    if ($cupo <= 20) {
                                         $sms .= '<p style="color:#FF4000">Saldo disponible bajo. Comuniquese con <a href="mailto:asistente.comercial@contactosms.com.co">asistente.comercial@contactosms.com.co</a> o <a href="mailto:cpineda@contactosms.com.co">cpineda@contactosms.com.co</a> para adquirir un nuevo plan.</p>';
                                     }
                                 } else {
-                                    if ($cupo > 90) {
+                                    if ($cupo <= 10) {
                                         $sms .= '<p style="color:#FF4000;font-size:13px">Saldo disponible bajo. Comuniquese con <a href="mailto:asistente.comercial@contactosms.com.co">asistente.comercial@contactosms.com.co</a>  o <a href="mailto:cpineda@contactosms.com.co">cpineda@contactosms.com.co</a> para adquirir un nuevo plan.</p>';
                                     }
                                 }
                                 $sms .= "<table border=1>";
                                 $sms .= "<tr style='background-color:#ccc;color:black;border:1px solid #000;font-weight:bold;'><td>Operador</td><td>Cantidad</td></tr>";
-                                echo $sms;
-                                exit;
+
                                 /**
                                  * Iteracion para mostrar la informacion con la sumatoria de cada valor
                                  */
@@ -186,9 +188,13 @@ class cronCorreo extends MY_Controller {
                                 $this->email->clear(TRUE);
 
                                 $sms = '';
+                            } else {
+                                echo "No existe plano <br>";
                             }
                         }
                     }
+                } else {
+                    echo "Archivo ya existe<br>";
                 }
             } else {
                 echo "No hay reportes <br>";
