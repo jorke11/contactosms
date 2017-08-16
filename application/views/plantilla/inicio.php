@@ -50,6 +50,14 @@
                                 <div class="col-lg-12 col-md-12 col-sm-12">
 
                                     <div class="row">
+                                        <div class="col-lg-12">
+                                            <p class="text-warning">Señor usuario: Recuerde que para llamar a los campos configurables, <br>
+                                                debe encerrarlos en signos de porcentaje (%)... por el ejemplo: <br>
+                                                Señor(a) %campo1% los campos configurables son - campo1 -campo2- campo3 la columna fecha es para programar el envío, favor mantener el formato.</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
                                         <div class="form-group">
                                             <label for="exampleInputEmail1">Mensaje</label>
                                             <textarea class="form-control" id="message" rows="3" name="message" placeholder="Escribe aqui el Mensaje" style="resize: none"></textarea>
@@ -61,7 +69,7 @@
                                         </div>
                                     </div>
                                     <br>
-                                    
+
                                     <div class="row">
                                         <div class="col-lg-3 col-md-3 col-sm-3"><b>Archivo (.xls)</b></div>    
                                         <div class="col-lg-4 col-md-4 col-sm-4">

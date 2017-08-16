@@ -357,9 +357,14 @@ class Plantilla extends MY_Controller {
     }
 
     function agregaDatosSession($arreglo, $fila, $idbase) {
-        $UNIX_DATE = ($arreglo[5] - 25569) * 86400;
-        $arreglo[5] = gmdate("Y/m/d H:i:s", $UNIX_DATE);
-        $programado = explode(" ", $arreglo[5]);
+        $programado = explode(" ", date("Y/m/d H:i:s"));
+        if (isset($arreglo[6])) {
+            $UNIX_DATE = ($arreglo[6] - 25569) * 86400;
+            $arreglo[6] = gmdate("Y/m/d H:i:s", $UNIX_DATE);
+            $programado = explode(" ", $arreglo[6]);
+        }
+
+
 
         $valFecha = $this->calculaFecha($programado[0], $programado[1]);
 
@@ -385,7 +390,6 @@ class Plantilla extends MY_Controller {
                                     $this->insertRegistros($validado);
                                     $validado = '';
                                 } else {
-
                                     $arregloTodo[] = $validado;
                                     $this->insertRegistros($arregloTodo);
                                     $arregloTodo = '';
@@ -406,6 +410,7 @@ class Plantilla extends MY_Controller {
                 $this->insertaErrores("Campo 1 es obligatorio", $arreglo, $idbase, $fila);
             }
         } else {
+
             $this->insertaErrores($valFecha[1], $arreglo, $idbase, $fila);
         }
     }
@@ -468,6 +473,12 @@ class Plantilla extends MY_Controller {
             $mensaje = str_replace("%campo2%", $fila[4], $mensaje);
         }
 
+        if (isset($fila[5]) && $fila[5] != '') {
+            $mensaje = str_replace("%campo3%", $fila[5], $mensaje);
+        }
+
+
+        $fila[3] = (isset($fila[3])) ? $fila[3] : '';
 
         $arreglo["mensaje"] = $mensaje;
 
@@ -476,10 +487,8 @@ class Plantilla extends MY_Controller {
 
         $arreglo["numero"] = $this->LimpiaMensaje($fila[1]);
 
-        $fila[3] = (isset($fila[3])) ? $fila[3] : '';
 
-        $arreglo["nota"] = $this->LimpiaMensaje($fila[3]);
-        $arreglo["fechaprogramado"] = (isset($fila[5])) ? $fila[5] : '';
+        $arreglo["fechaprogramado"] = (isset($fila[6])) ? $fila[6] : date("Y-m-d H:i");
         /**
          * Se valida la longitud del dato segun su tipo
          */
@@ -545,7 +554,7 @@ class Plantilla extends MY_Controller {
                         $sms[$i]["fechacargue"] = date("Y-m-d H:i:s");
                         $sms[$i]["idcanal"] = $preferencias["idcanal"];
                         $sms[$i]["flash"] = (isset($fila[4]) && $fila[4] == 'SI') ? 1 : 0;
-                        $sms[$i]["fechaprogramado"] = (isset($fila[4])) ? $fila[4] : date("Y-m-d H:i");
+                        $sms[$i]["fechaprogramado"] = (isset($fila[6])) ? $fila[6] : date("Y-m-d H:i");
                         $anterior = $largo;
                     }
 

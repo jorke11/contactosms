@@ -89,7 +89,7 @@ $(function () {
 
                         });
                     } else {
-                        alert("El text %campo1% y %campo2% son obligatorios!");
+                        alert("El texto %campo1% son obligatorios!");
                     }
                 } else {
                     alert("Mensaje vacio");

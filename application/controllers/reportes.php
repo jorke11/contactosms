@@ -293,10 +293,13 @@ class Reportes extends MY_Controller {
             ORDER by 3 DESC
             
             ";
+        
+        
 
           
         
         $datos = $this->AdministradorModel->ejecutar($sql);
+        
 //        $respuesta = $this->dataTable($datos);
 //        $respuesta["draw"] = 1;
 //        echo json_encode($respuesta);

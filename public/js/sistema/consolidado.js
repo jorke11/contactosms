@@ -6,8 +6,6 @@ function consolidado() {
 
     this.table = function () {
         return $('#tablafecha').DataTable({
-            //processing: true,
-            //serverSide: true,
             ajax: {
                 url: "getConsolidado",
                 method: "POST"
@@ -19,18 +17,18 @@ function consolidado() {
                 {data: "disponible"},
                 {data: "servicio"},
                 {data: "tiposervicio", render: function (data, type, row) {
-                        var total = row.disponible + row.enviados;
+                        var total = parseInt(row.disponible) + parseInt(row.enviados);
 //                        console.log(total)
                         var por = (row.disponible / total) * 100;
                         var html = 'Ok';
                         
                         if (row.enviados != '0') {
                             if (row.tiposervicio == 1) {
-                                if (por < 80) {
+                                if (por < 20) {
                                     html = "Saldo disponible bajo. Comuníquese con asistente.comercial@contactosms.com.co o cpineda@contactosms.com.co para adquirir un nuevo plan";
                                 }
                             } else {
-                                if (por < 90) {
+                                if (por < 10) {
                                     html = "Saldo disponible bajo. Comuníquese con asistente.comercial@contactosms.com.co o cpineda@contactosms.com.co para adquirir un nuevo plan";
                                 }
                             }

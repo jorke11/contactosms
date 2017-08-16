@@ -28,11 +28,13 @@ class DescargaArchivoc extends MY_Controller {
      * @param type $nombre
      */
 //    public function descargar($control, $carpeta, $nombre) {
-    public function descargar($carpeta, $archivo) {
+    public function descargar($archivo) {
+        $archivo = str_replace(":", "/", $archivo);
 
-        $archivo = '/var/www/html/contactosms/planos.c/' . $carpeta . "/" . $archivo;
-        $name = $archivo;
+        $archivo = '/var/www/html/contactosms/' . $archivo;
 
+       
+        $name = substr($archivo, strripos($archivo, "/")+1, strlen($archivo));
         /**
          * Se vericia que el arhivo exista para poderlo descargar
          */
