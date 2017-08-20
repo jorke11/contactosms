@@ -10,9 +10,10 @@ class Portados extends MY_Controller {
     public function __construct() {
 
         parent::__construct();
-//        $this->load->library('excel');
-//        $this->load->library("reader");
+        $this->load->library('excel');
+        $this->load->library("reader");
         $this->load->model("AdministradorModel");
+        $this->load->model("CargaexcelModel");
         $this->tabla = "portados";
     }
 
@@ -24,7 +25,7 @@ class Portados extends MY_Controller {
         /**
          * Metodos que se obtiene para precargar datos en los formularios
          */
-        $data["canales"] = $this->AdministradorModel->buscar("canales", '*', '');
+        $data["carries"] = $this->AdministradorModel->buscar("carries", '*', '');
         $data["vista"] = 'portados/init';
         $this->load->view('template', $data);
     }
@@ -36,9 +37,10 @@ class Portados extends MY_Controller {
         }
 
         echo $this->datatables
-                ->select("b.id,b.numero,c.nombre canal,b.date_insert")
+                ->select("b.id,b.numero,pre.nombre previuos,cur.nombre current_carrie,b.date_insert")
                 ->from("portados b")
-                ->join("canales c", "b.canal_id=c.id", "left")
+                ->join("carries pre", "b.previous_carrie_id=pre.id", "left")
+                ->join("carries cur", "b.current_carrie_id=cur.id", "left")
                 ->where(array("b.status_id" => 1))
                 ->generate();
     }
@@ -60,18 +62,19 @@ class Portados extends MY_Controller {
 
         if ($id == '' && $com == false) {
             $data["date_insert"] = date("Y-m-d H:i");
-            $this->AdministradorModel->insert("portados", $data,'debug');
+            $this->AdministradorModel->insert("portados", $data);
         } else {
             $insert["numero"] = $data["numero"];
-            $insert["canal_id"] = $data["canal_id"];
+            $insert["previous_carrie_id"] = $data["previous_carrie_id"];
+            $insert["current_carrie_id"] = $data["current_carrie_id"];
 
             if ($com != false) {
                 $insert["date_update"] = date("Y-m-d H:i");
                 $this->AdministradorModel->update("portados", $com["id"], $insert);
             } else {
-                
+
                 $insert["date_insert"] = date("Y-m-d H:i");
-                $this->AdministradorModel->insert("portados", $insert,'debug');
+                $this->AdministradorModel->insert("portados", $insert);
             }
 
             $data["date_update"] = date("Y-m-d H:i");
@@ -105,9 +108,9 @@ class Portados extends MY_Controller {
         $name = $_FILES["file_excel"]["name"];
         $archivo = $_FILES["file_excel"]["tmp_name"];
 
-
-//        $ruta = $this->crearRutaCarpeta(FCPATH . "\tmp\\" . date("Y-m-d"));
+        //        $ruta = $this->crearRutaCarpeta(FCPATH . "\tmp\\" . date("Y-m-d"));
         $config['upload_path'] = FCPATH . 'tmp';
+
 //        $config['upload_path'] = FCPATH . '\tmp';
         $config['allowed_types'] = '*';
         $config['file_name'] = $name;
@@ -116,10 +119,13 @@ class Portados extends MY_Controller {
         if (!$this->upload->do_upload('file_excel')) {
             print_r($this->upload->display_errors());
         } else {
+
             $datas = array('upload_data' => $this->upload->data());
         }
+
         $objPHPExcel = PHPExcel_IOFactory::load($archivo);
         $sheetData = $objPHPExcel->getActiveSheet()->toArray(null, true, true, true);
+
 
         $base["nombre"] = $name;
         $base["ruta"] = $datas["upload_data"]["full_path"];
@@ -132,33 +138,47 @@ class Portados extends MY_Controller {
         $user = ($this->session->userdata("idperfil") == 1 && $data["idusuario"] != "0") ? $data["idusuario"] : $this->session->userdata("idusuario");
         foreach ($sheetData as $i => $value) {
             if ($i > 1) {
+                $validaNum = $this->validaNumero($value["A"]);
+                if ($validaNum != false) {
+                    if ($value["A"] != '') {
+                        $where = "numero = '" . $value["A"] . "'";
+                        $com = $this->AdministradorModel->buscar("portados", '*', $where, 'row');
+                        $where = "nombre ilike '%" . strtolower($value["B"]) . "%'";
+                        $previous = $this->AdministradorModel->buscar("carries", '*', $where, 'row');
+                        $where = "nombre ilike '%" . strtolower($value["C"]) . "%'";
+                        $current = $this->AdministradorModel->buscar("carries", '*', $where, 'row');
 
-                //$validaNum = $this->validaNumero($value["A"]);
-                if ($value["A"] != '') {
-                    $where = "numero = '" . $value["A"] . "' and user_id=" . $user;
-                    $com = $this->AdministradorModel->buscar("portados", '*', $where, 'row');
-
-                    $insert["user_id"] = $user;
-                    $insert["numero"] = $value["A"];
-                    $insert["status_id"] = 3;
-                    $insert["archivo_id"] = $archivo_id;
-
-                    if ($com != false) {
-                        $insert["date_update"] = date("Y-m-d H:i");
-                        $this->AdministradorModel->update("portados", $com["id"], $insert);
-                    } else {
-                        $insert["date_insert"] = date("Y-m-d H:i");
-                        $this->AdministradorModel->insert("portados", $insert);
+                        $insert["numero"] = $value["A"];
+                        $insert["status_id"] = 3;
+                        $insert["archivo_id"] = $archivo_id;
+                        $insert["previous_carrie_id"] = $previous["id"];
+                        $insert["current_carrie_id"] = $current["id"];
+                        if ($previous != false && $current != false) {
+                            if ($com != false) {
+                                $insert["date_update"] = date("Y-m-d H:i");
+                                $this->AdministradorModel->update("portados", $com["id"], $insert);
+                            } else {
+                                $insert["date_insert"] = date("Y-m-d H:i");
+                                $this->AdministradorModel->insert("portados", $insert);
+                            }
+                        } else {
+                            $this->insertaErrores("Problemas con los carries", $value, $archivo_id, $i);
+                        }
                     }
+                } else {
+                    $this->insertaErrores($validaNum[1], $value, $archivo_id, $i);
                 }
-                //else {
-//                    $this->insertaErrores($validaNum[1], $value, $archivo_id, $i);
-                //}
             }
         }
 
         $where = "archivo_id=" . $archivo_id;
-        $resp["data"] = $this->AdministradorModel->buscar("portados", '*', $where);
+        $join = " JOIN carries pre ON b.previous_carrie_id=pre.id
+                JOIN carries cur ON b.current_carrie_id=cur.id
+                ";
+
+        $where = "archivo_id=".$archivo_id;
+        $campos = "b.id,b.numero,pre.nombre previuos,cur.nombre current_carrie,b.date_insert";
+        $resp["data"] = $this->AdministradorModel->buscar("portados b " . $join, $campos, $where);
         $resp["archivo_id"] = $archivo_id;
         echo json_encode($resp);
     }

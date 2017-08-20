@@ -49,26 +49,25 @@ function Portados() {
         $("#tblResult tbody").empty();
         $.each(detail, function (i, val) {
             html += "<tr><td>" + val.numero + "</td>";
+            html += "<td>" + val.previuos + "</td>";
+            html += "<td>" + val.current_carrie + "</td>";
             html += '<td><button class="btn btn-warning btn-xs" type="button" onclick=obj.deleteItem(' + val.id + ',' + val.archivo_id + ')> <span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button></td></tr>';
         })
         $("#tblResult tbody").html(html);
     }
 
     this.new = function () {
-        $("#id").val("");
-        $("#numero").val("");
+        $(".input-portados").limpiarCampos();
     }
 
     this.save = function () {
         var obj = {};
-        obj.numero = $("#frm #numero").val();
-        obj.id = $("#id").val();
-        obj.canal_id = $("#frm #canal_id").val();
-        if (obj.numero != '' && !isNaN(obj.numero) && (obj.numero).length == 10) {
+        var data = $("#frm").serialize();
+        if ($("#numero").val() != '' && !isNaN($("#numero").val()) && ($("#numero").val()).length == 10) {
             $.ajax({
                 url: "portados/add",
                 method: 'post',
-                data: obj,
+                data: data,
                 dataType: 'JSON',
                 success: function (data) {
                     if (data.success == true) {
@@ -87,8 +86,7 @@ function Portados() {
             method: 'GET',
             dataType: 'JSON',
             success: function (data) {
-                $("#id").val(data.id);
-                $("#numero").val(data.numero);
+                $(".input-portados").cargarCampos(data,false);
             }
         })
     }
@@ -136,7 +134,8 @@ function Portados() {
             columns: [
                 {data: "id", searchable: false, },
                 {data: "numero"},
-                {data: "canal"},
+                {data: "previuos"},
+                {data: "current_carrie"},
                 {data: "date_insert", searchable: false},
             ],
             order: [[1, 'ASC']],
@@ -148,7 +147,7 @@ function Portados() {
                     }
                 },
                 {
-                    targets: [4],
+                    targets: [5],
                     searchable: false,
                     mData: null,
                     mRender: function (data, type, full) {

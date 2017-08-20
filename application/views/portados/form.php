@@ -4,34 +4,51 @@
             <div class="panel panel-default">
                 <form id="frm">
                     <div class="panel-body">
-                        <input id="id" name="id" type="hidden">
+                        <input id="id" name="id" type="hidden" class="input-portados">
                         <div class="row">
                             <div class="col-lg-12">
                                 <div class="form-group">
                                     <label for="email">Numero</label>
-                                    <input type="text" class="form-control input-category" id="numero" name='numero' required="">
+                                    <input type="text" class="form-control input-portados" id="numero" name='numero' required="">
                                 </div>
                             </div>
                         </div>
-                        <?php
-                        if ($this->session->userdata("idperfil") == 1) {
-                            ?>
-                            <div class="form-group">
-                                <label for="email">Canal</label>
-                                <select class="form-control" id="canal_id" name="canal_id">
-                                    <option value="0">Seleccione</option>
-                                    <?php
-                                    foreach ($canales as $value) {
-                                        ?>
-                                        <option value="<?php echo $value["id"] ?>"><?php echo trim($value["nombre"]) ?></option>
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="form-group">
+                                    <label for="email">Operador Anterior</label>
+                                    <select class="form-control input-portados" id="previous_carrie_id" name="previous_carrie_id">
+                                        <option value="0">Seleccione</option>
                                         <?php
-                                    }
-                                    ?>
-                                </select>
+                                        foreach ($carries as $value) {
+                                            ?>
+                                            <option value="<?php echo $value["id"] ?>"><?php echo trim($value["nombre"]) ?></option>
+                                            <?php
+                                        }
+                                        ?>
+                                    </select>
+                                </div>
                             </div>
-                            <?php
-                        }
-                        ?>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="form-group">
+                                    <label for="email">Operador actual</label>
+                                    <select class="form-control input-portados" id="current_carrie_id" name="current_carrie_id">
+                                        <option value="0">Seleccione</option>
+                                        <?php
+                                        foreach ($carries as $value) {
+                                            ?>
+                                            <option value="<?php echo $value["id"] ?>"><?php echo trim($value["nombre"]) ?></option>
+                                            <?php
+                                        }
+                                        ?>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+
                     </div>
                 </form>
                 <div class="panel-footer">
@@ -50,7 +67,8 @@
                             <tr>
                                 <th></th>
                                 <th>Numero</th>
-                                <th>Canal</th>
+                                <th>Operador Anterior</th>
+                                <th>Operador Actual</th>
                                 <th>Fecha</th>
                                 <th>Borrar</th>
                             </tr>

@@ -5,34 +5,12 @@
         <a href="<?php echo base_url()?>formatos/formato.xlsx" download="formato.xlsx" class="title">Formato Archivo</a>
     </div>
 </div>
-
 <div class="container-fluid">
     <form id="frmExcel" enctype="multipart/form-data">
         <div class="row">
             <div class="col-lg-1">
                 <button id="subirExcel" class="btn btn-success" type="button">Subir</button>
             </div>
-            <?php
-            if ($this->session->userdata("idperfil") == 1) {
-                ?>
-                <div class="col-lg-2">
-                    <div class="form-group">
-                        <label for="email">Usuario</label>
-                        <select class="form-control" id="idusuario" name="idusuario">
-                            <option value="0">Seleccione</option>
-                            <?php
-                            foreach ($canales as $value) {
-                                ?>
-                                <option value="<?php echo $value["id"] ?>"><?php echo $value["nombre"] ?></option>
-                                <?php
-                            }
-                            ?>
-                        </select>
-                    </div>
-                </div>
-                <?php
-            }
-            ?>
             <div class="col-lg-2">
                 <div class="form-group">
                     <input type="file" name="file_excel" id="file_excel">
@@ -54,6 +32,8 @@
                         <thead>
                             <tr>
                                 <th>Numero</th>
+                                <th>Operador anterior</th>
+                                <th>Operador Actual</th>
                                 <th>Borrar</th>
                             </tr>
                         </thead>
