@@ -53,14 +53,14 @@ class Usuarios extends MY_Controller {
 
             if ($valida == FALSE) {
                 $ok = $this->AdministradorModel->insert($this->tabla, $data);
-                
+
                 $canal = '';
                 /**
                  * Iteracion para obtener las preferencias
                  */
                 foreach ($canales as $i => $value) {
                     $canal .= ($canal == '') ? '' : ',';
-                    $canal .=$value;
+                    $canal .= $value;
                 }
 
                 $preferencias["preferencias"] = $canal;
@@ -69,11 +69,10 @@ class Usuarios extends MY_Controller {
                 /**
                  * Crear las carpetas necesarias y le da permisos
                  */
-                
                 $this->crearRutaCarpeta($ruta . $ok . "/");
-                $this->crearRutaCarpeta($rutazip. $ok . "/");
+                $this->crearRutaCarpeta($rutazip . $ok . "/");
 
-                $respuesta["datos"] = $this->AdministradorModel->buscar($this->tabla, '*', 'id=' . $ok,'row');
+                $respuesta["datos"] = $this->AdministradorModel->buscar($this->tabla, '*', 'id=' . $ok, 'row');
                 echo json_encode($respuesta);
             } else {
                 $respuesta["error"] = 'usuario ya existe';
@@ -104,13 +103,13 @@ class Usuarios extends MY_Controller {
             $canal = '';
             foreach ($canales as $i => $value) {
                 $canal .= ($canal == '') ? '' : ',';
-                $canal .=$value;
+                $canal .= $value;
             }
 
             $data["preferencias"] = $canal;
             $this->AdministradorModel->update($this->tabla, $id, $data);
 
-            $respuesta["datos"] = $this->AdministradorModel->buscar($this->tabla, '*', 'id=' . $id,'row');
+            $respuesta["datos"] = $this->AdministradorModel->buscar($this->tabla, '*', 'id=' . $id, 'row');
             $respuesta["preferencias"] = $canal;
             echo json_encode($respuesta);
         }
@@ -158,9 +157,45 @@ class Usuarios extends MY_Controller {
 
         unset($datos["preferencias"]);
         $datos["clave"] = ($ok == 'ok') ? base64_decode($datos["clave"]) : $datos["clave"];
+
+        $campos = "p.id,p.title as text,u.id selected,coalesce(p.node_id::text,'#') parent,
+                CASE WHEN p.nivel=2 THEN 'glyphicon glyphicon-lock' ELSE '' END icon,
+                CASE WHEN u.id IS NOT NULL THEN 'checked' ELSE '' END as state,p.nivel";
+        $join = " LEFT JOIN permission_users u ON u.permission_id=p.id AND u.user_id=" . $data["id"];
+        $permission["core"]["data"] = $this->AdministradorModel->buscar("permission p  " . $join, $campos);
+        $permission["plugins"] = array("checkbox");
+
+        foreach ($permission["core"]["data"] as $i => $value) {
+            if ($value["state"] == 'checked' && $value["nivel"] == 2) {
+                $permission["core"]["data"][$i]["state"] = array("selected" => true);
+            }
+        }
+
         $respuesta["datos"] = $datos;
         $respuesta["preferencia"] = $prefer;
+        $respuesta["permissions"] = $permission;
         echo json_encode($respuesta);
+    }
+
+    public function updatePermission() {
+        $in = $this->input->post();
+
+        $field = "p.id,CASE WHEN u.id IS NOT NULL THEN 'allowed' ELSE 'new' END as class";
+        $join = " LEFT JOIN permission_users u ON u.permission_id=p.id AND u.user_id=" . $in["user_id"];
+        $where = "p.id IN (" . implode($in["ids"], ',') . ")";
+        $permission = $this->AdministradorModel->buscar("permission p " . $join, $field, $where);
+
+        $cont = 0;
+        foreach ($permission as $value) {
+            if ($value["class"] == "new") {
+                $new["user_id"] = $in["user_id"];
+                $new["permission_id"] = $value["id"];
+                $this->AdministradorModel->insert("permission_users", $new,'xdebug');
+                $cont++;
+            }
+        }
+
+        echo json_encode(array("success" => true, "new" => $cont));
     }
 
 }

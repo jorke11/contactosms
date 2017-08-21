@@ -22,8 +22,7 @@ class MY_Controller extends CI_Controller {
 //        }
 
         if ($this->session->userdata("idperfil")) {
-            $menu = $this->AdministradorModel->buscar("perfiles", '*', 'id=' . $this->session->userdata("idperfil"), 'row');
-            $data["menu"] = $this->cargaMenu($menu["menu"]);
+            $data["menu"] = $this->cargaMenu();
             $this->session->set_userdata($data);
         } else {
             $seg = $this->uri->segment(1);
@@ -35,31 +34,58 @@ class MY_Controller extends CI_Controller {
         }
     }
 
-    public function cargaMenu($ruta) {
-        $ruta = base_url() . $ruta;
+    public function cargaMenu() {
+        $campos = "u.id,p.title,p.url,p.node_id,p.nivel";
+        $join = " JOIN permission p ON p.id=u.permission_id";
+        $where = "u.user_id = " . $this->session->userdata("idusuario") . " AND p.nivel=1";
+        $permission = $this->AdministradorModel->buscar("permission_users  u " . $join, $campos, $where);
 
-	switch($_SESSION["idperfil"]){
-                case 1:{
-//                        print_x(get_defined_constants());exit;
-//                        $ruta="/var/www/html/contactosms.new/public/menu/menu1.ini";
-//                        $ruta=FCPATH."public\menu\menu1.ini";
-                        $ruta=FCPATH."public/menu/menu1.ini";
-                        break;
-                        }
-    
-                case 2:{
-                        $ruta="/var/www/html/contactosms.new/public/menu/menu2.ini";
-                        break;
-                        }
-                case 3:{
-                        $ruta="/var/www/html/contactosms.new/public/menu/menu.ini";
-                        break;
-                        }
+        if ($permission != false) {
+            foreach ($permission as $i => $val) {
+                $where = " p.node_id=" . $val["id"];
+                $node = $this->AdministradorModel->buscar("permission_users  u " . $join, $campos, $where);
+                if ($node != false) {
+                    $permission[$i]["node"] = $node;
+                }
+            }
+        } else {
+            $menu = $this->AdministradorModel->buscar("perfiles", '*', 'id=' . $this->session->userdata("idperfil"), 'row');
 
+            $ruta = base_url() . $menu["menu"];
+            switch ($_SESSION["idperfil"]) {
+                case 1: {
+//                        $ruta = "/var/www/html/contactosms.new/public/menu/menu1.ini";
+                        $ruta = "/var/www/html/contactosms/public/menu/menu1.ini";
+                        break;
+                    }
+                case 2: {
+                        $ruta = "/var/www/html/contactosms/public/menu/menu2.ini";
+//                        $ruta = "/var/www/html/contactosms.new/public/menu/menu2.ini";
+                        break;
+                    }
+                case 3: {
+//                        $ruta = "/var/www/html/contactosms.new/public/menu/menu.ini";
+                        $ruta = "/var/www/html/contactosms/public/menu/menu.ini";
+                        break;
+                    }
+            }
+            $data = (parse_ini_file($ruta, true));
+            $cont = 0;
+            foreach ($data as $i => $value) {
+
+                $permission[$cont]["title"] = $i;
+                $permission[$cont]["url"] = '';
+                if (count($value) > 0) {
+                    foreach ($value as $j => $val) {
+                        $permission[$cont]["node"][] = array("title" => $j, "url" => $val);
+                    }
+                }
+                $cont++;
+            }
         }
 
-        //return (parse_ini_file($ruta, true));
-        return (parse_ini_file($ruta, true));
+
+        return $permission;
     }
 
     /**
@@ -94,7 +120,7 @@ class MY_Controller extends CI_Controller {
          */
         if (!file_exists($archivo)) {
             for ($j = 0; $j < $largotitulo; $j++)
-                $texto .=trim($titulo[$j]) . $separador;
+                $texto .= trim($titulo[$j]) . $separador;
             $texto .= "\n";
         }
         /**
@@ -102,7 +128,7 @@ class MY_Controller extends CI_Controller {
          */
         for ($i = 0; $i < $alto; $i++) {
             for ($j = 0; $j < $largo; $j++)
-                $texto .=trim($datos[$i][$j]) . $separador;
+                $texto .= trim($datos[$i][$j]) . $separador;
             $texto .= "\n";
         }
 
@@ -185,7 +211,7 @@ class MY_Controller extends CI_Controller {
         );
 
         $string = htmlentities($string, ENT_QUOTES | ENT_IGNORE, 'UTF-8');
-        
+
         $string = str_replace(
                 array('&quot;', '&#39;', '&#039;'), array('"', "'", "'"), $string
         );

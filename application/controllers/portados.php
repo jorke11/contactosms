@@ -32,16 +32,9 @@ class Portados extends MY_Controller {
 
     public function getList() {
 
-        if ($this->session->userdata("idperfil") != 1) {
-            $this->datatables->where("user_id", $this->session->userdata("idusuario"));
-        }
-
         echo $this->datatables
-                ->select("b.id,b.numero,pre.nombre previuos,cur.nombre current_carrie,b.date_insert")
-                ->from("portados b")
-                ->join("carries pre", "b.previous_carrie_id=pre.id", "left")
-                ->join("carries cur", "b.current_carrie_id=cur.id", "left")
-                ->where(array("b.status_id" => 1))
+                ->select("id,numero,previuos,current_carrie,date_insert")
+                ->from("vportados")
                 ->generate();
     }
 
@@ -176,7 +169,7 @@ class Portados extends MY_Controller {
                 JOIN carries cur ON b.current_carrie_id=cur.id
                 ";
 
-        $where = "archivo_id=".$archivo_id;
+        $where = "archivo_id=" . $archivo_id;
         $campos = "b.id,b.numero,pre.nombre previuos,cur.nombre current_carrie,b.date_insert";
         $resp["data"] = $this->AdministradorModel->buscar("portados b " . $join, $campos, $where);
         $resp["archivo_id"] = $archivo_id;

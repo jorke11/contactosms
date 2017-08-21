@@ -84,6 +84,11 @@ function gestionUsuarios(id) {
             })
         })
         mensaje("alertamensaje", 'hidden');
+
+        
+        $('#jstree_demo_div').jstree(data.permissions);
+
+        $("#tabpermissions").removeClass("hidden");
         recargar();
     })
 }
