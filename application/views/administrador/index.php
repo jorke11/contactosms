@@ -1,3 +1,4 @@
+<script src="<?php echo base_url() ?>librerias/toastr/toastr.min.js"></script>
 <link href="<?php echo base_url() ?>librerias/toastr/toastr.min.css" rel="stylesheet">
 <link href="<?php echo base_url() ?>librerias/jstree/themes/default/style.css" rel="stylesheet">
 <script src="<?php echo base_url() ?>librerias/jstree/jstree.js"></script>

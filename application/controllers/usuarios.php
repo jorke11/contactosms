@@ -158,10 +158,22 @@ class Usuarios extends MY_Controller {
         unset($datos["preferencias"]);
         $datos["clave"] = ($ok == 'ok') ? base64_decode($datos["clave"]) : $datos["clave"];
 
+        $respuesta["datos"] = $datos;
+        $respuesta["preferencia"] = $prefer;
+        $respuesta["permissions"] = $this->getDataPermission($data["id"]);
+        echo json_encode($respuesta);
+    }
+
+    public function getDataPermission($user_id = NULL) {
+
         $campos = "p.id,p.title as text,u.id selected,coalesce(p.node_id::text,'#') parent,
                 CASE WHEN p.nivel=2 THEN 'glyphicon glyphicon-lock' ELSE '' END icon,
                 CASE WHEN u.id IS NOT NULL THEN 'checked' ELSE '' END as state,p.nivel";
-        $join = " LEFT JOIN permission_users u ON u.permission_id=p.id AND u.user_id=" . $data["id"];
+        $join = " LEFT JOIN permission_users u ON u.permission_id=p.id ";
+
+        if ($user_id != null) {
+            $join .= " AND u.user_id=" . $user_id;
+        }
         $permission["core"]["data"] = $this->AdministradorModel->buscar("permission p  " . $join, $campos);
         $permission["plugins"] = array("checkbox");
 
@@ -170,11 +182,7 @@ class Usuarios extends MY_Controller {
                 $permission["core"]["data"][$i]["state"] = array("selected" => true);
             }
         }
-
-        $respuesta["datos"] = $datos;
-        $respuesta["preferencia"] = $prefer;
-        $respuesta["permissions"] = $permission;
-        echo json_encode($respuesta);
+        return $permission;
     }
 
     public function updatePermission() {
@@ -184,18 +192,46 @@ class Usuarios extends MY_Controller {
         $join = " LEFT JOIN permission_users u ON u.permission_id=p.id AND u.user_id=" . $in["user_id"];
         $where = "p.id IN (" . implode($in["ids"], ',') . ")";
         $permission = $this->AdministradorModel->buscar("permission p " . $join, $field, $where);
-
         $cont = 0;
         foreach ($permission as $value) {
             if ($value["class"] == "new") {
                 $new["user_id"] = $in["user_id"];
                 $new["permission_id"] = $value["id"];
-                $this->AdministradorModel->insert("permission_users", $new,'xdebug');
+                $this->AdministradorModel->insert("permission_users", $new);
                 $cont++;
             }
         }
 
         echo json_encode(array("success" => true, "new" => $cont));
+    }
+
+    public function permisos() {
+        $data["vista"] = "administrador/admin_permissions";
+        $data["main"] = $this->AdministradorModel->buscar("permission", "*", "nivel=1");
+
+        $this->load->view("template", $data);
+    }
+
+    public function getPermission() {
+        $campos = "id,title as text, coalesce(node_id::text,'#') parent,CASE WHEN nivel=2 THEN 'glyphicon glyphicon-lock' ELSE '' END icon";
+        $permission["core"]["data"] = $this->AdministradorModel->buscar("permission", $campos);
+        $permission["plugins"] = array("checkbox");
+        echo json_encode(array("success" => true, "data" => $permission));
+    }
+
+    public function getNode() {
+        $in = $this->input->post();
+        $where = "id=" . $in["node_id"];
+        $node = $this->AdministradorModel->buscar("permission", '*', $where, "row");
+        echo json_encode(array("success" => true, "data" => $node));
+    }
+
+    public function updatePermissionId() {
+        $in = $this->input->post();
+        $id = $in["id"];
+        unset($in["id"]);
+        $node = $this->AdministradorModel->update("permission", $id, $in);
+        echo json_encode(array("success" => true));
     }
 
 }

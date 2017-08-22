@@ -1,4 +1,4 @@
-function BlackList() {
+function Permission() {
     var table;
     this.init = function () {
         $('#btnSave').on("click", function () {
@@ -12,7 +12,9 @@ function BlackList() {
                 data: param,
                 dataType: 'JSON',
                 success: function (data) {
-
+                    if (data.success == true) {
+                        toastr.success("Operacion realizada");
+                    }
                 }
             })
 
@@ -20,5 +22,5 @@ function BlackList() {
     }
 }
 
-var obj = new BlackList();
+var obj = new Permission();
 obj.init();

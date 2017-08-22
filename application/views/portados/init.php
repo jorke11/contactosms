@@ -6,6 +6,7 @@
         <ul class="nav nav-tabs" role="tablist" id='myTabs'>
             <li role="presentation" class="active" id="tabList"><a href="#list" aria-controls="home" role="tab" data-toggle="tab">Manual</a></li>
             <li role="presentation" id="tabManagement"><a href="#management" aria-controls="profile" role="tab" data-toggle="tab">Excel</a></li>
+            <li role="presentation" id="tabBases"><a href="#validateexcel" aria-controls="profile" role="tab" data-toggle="tab">Valida Bases</a></li>
         </ul>
 
         <!-- Tab panes -->
@@ -20,6 +21,9 @@
             </div>
             <div role="tabpanel" class="tab-pane " id="management">
                 <?php $this->load->view("portados/excel"); ?>
+            </div>
+            <div role="tabpanel" class="tab-pane " id="validateexcel">
+                <?php $this->load->view("portados/bases"); ?>
             </div>
         </div>
     </div>

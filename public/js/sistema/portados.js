@@ -6,6 +6,7 @@ function Portados() {
         $("#btnAdd").click(this.save);
         $("#btnNew").click(this.new);
         $("#subirExcel").click(this.addBlacklist);
+        $("#subirExcelbases").click(this.validateBases);
         $("#btnConfirmation").click(this.confirmation);
     }
 
@@ -24,8 +25,31 @@ function Portados() {
         });
     }
 
+    this.validateBases = function () {
+        var elem = $(this);
+        $("#link_download").addClass("hidden");
+        elem.attr("disabled", true);
+        $("#frmExcelBases #archivo_id").val("");
+        var formData = new FormData($("#frmExcelBases")[0]);
+        $.ajax({
+            url: "portados/uploadExcelBases",
+            type: "POST",
+            data: formData,
+            cache: false,
+            contentType: false,
+            processData: false,
+            dataType: "JSON",
+            success: function (data) {
+                toastr.success("Operacion realizada");
+                $("#link_download").attr("href", $("#link_download").attr("href") + data.archivo_id).removeClass("hidden");
+//                $("#frmExcelBases #archivo_id").val(data.archivo_id);
+                elem.attr("disabled", false);
+            }
+        });
+    }
+
     this.addBlacklist = function () {
-        $("#archivo_id").val("");
+        $("#frmExcel #archivo_id").val("");
         var formData = new FormData($("#frmExcel")[0]);
         $.ajax({
             url: "portados/uploadExcel",
@@ -86,7 +110,7 @@ function Portados() {
             method: 'GET',
             dataType: 'JSON',
             success: function (data) {
-                $(".input-portados").cargarCampos(data,false);
+                $(".input-portados").cargarCampos(data, false);
             }
         })
     }

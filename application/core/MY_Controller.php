@@ -35,14 +35,14 @@ class MY_Controller extends CI_Controller {
     }
 
     public function cargaMenu() {
-        $campos = "u.id,p.title,p.url,p.node_id,p.nivel";
+        $campos = "p.id,p.title,p.url,p.node_id,p.nivel";
         $join = " JOIN permission p ON p.id=u.permission_id";
         $where = "u.user_id = " . $this->session->userdata("idusuario") . " AND p.nivel=1";
         $permission = $this->AdministradorModel->buscar("permission_users  u " . $join, $campos, $where);
 
         if ($permission != false) {
             foreach ($permission as $i => $val) {
-                $where = " p.node_id=" . $val["id"];
+                $where = " p.node_id=" . $val["id"] . " AND u.user_id=" . $this->session->userdata("idusuario");
                 $node = $this->AdministradorModel->buscar("permission_users  u " . $join, $campos, $where);
                 if ($node != false) {
                     $permission[$i]["node"] = $node;
