@@ -80,6 +80,8 @@ class MY_Model extends CI_Model {
                 } else {
                     echo $this->db->last_query();
                 }
+            } else if ($print == 'delete') {
+                return $this->db->affected_rows();
             } else {
                 if ($print == 'result') {
                     return $datos->result();
@@ -363,11 +365,11 @@ class MY_Model extends CI_Model {
     function LimpiaMensaje($string) {
         $string = trim($string);
 
-	$string = str_replace(
+        $string = str_replace(
                 array('ñ', 'Ñ', 'ç', 'Ç'), array('n', 'N', 'c', 'C'), $string
         );
 
-	 $string = str_replace(
+        $string = str_replace(
                 array('á', 'à', 'ä', 'â', 'ª', 'Á', 'À', 'Â', 'Ä', 'Ã'), array('a', 'a', 'a', 'a', 'a', 'A', 'A', '', 'A', 'A'), $string
         );
 
@@ -388,7 +390,7 @@ class MY_Model extends CI_Model {
         );
 
 
-	
+
         $string = utf8_encode((filter_var($string, FILTER_SANITIZE_STRING)));
         $string = str_replace(
                 array('á', 'à', 'ä', 'â', 'ª', 'Á', 'À', 'Â', 'Ä', 'Ã'), array('a', 'a', 'a', 'a', 'a', 'A', 'A', '', 'A', 'A'), $string
@@ -426,7 +428,7 @@ class MY_Model extends CI_Model {
                 array(";",), array(","), $string
         );
 
-        
+
 
         $string = str_replace(
                 array("&#39;", "&#39,", '&#34;', '&#34,'), array("'", "'", '"', '"'), $string

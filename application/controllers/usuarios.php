@@ -188,18 +188,16 @@ class Usuarios extends MY_Controller {
     public function updatePermission() {
         $in = $this->input->post();
 
-        $field = "p.id,CASE WHEN u.id IS NOT NULL THEN 'allowed' ELSE 'new' END as class";
-        $join = " LEFT JOIN permission_users u ON u.permission_id=p.id AND u.user_id=" . $in["user_id"];
-        $where = "p.id IN (" . implode($in["ids"], ',') . ")";
-        $permission = $this->AdministradorModel->buscar("permission p " . $join, $field, $where);
+        $sql = "DELETE from permission_users  where user_id=" . $in["user_id"] . " and permission_id not in(select id from permission where nivel=1)";
+        $this->AdministradorModel->ejecutar($sql,"delete");
+
         $cont = 0;
-        foreach ($permission as $value) {
-            if ($value["class"] == "new") {
-                $new["user_id"] = $in["user_id"];
-                $new["permission_id"] = $value["id"];
-                $this->AdministradorModel->insert("permission_users", $new);
-                $cont++;
-            }
+
+        foreach ($in["ids"] as $value) {
+            $new["user_id"] = $in["user_id"];
+            $new["permission_id"] = $value;
+            $this->AdministradorModel->insert("permission_users", $new);
+            $cont++;
         }
 
         echo json_encode(array("success" => true, "new" => $cont));
