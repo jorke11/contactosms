@@ -37,7 +37,7 @@ class MY_Controller extends CI_Controller {
     public function cargaMenu() {
         $campos = "p.id,p.title,p.url,p.node_id,p.nivel";
         $join = " JOIN permission p ON p.id=u.permission_id";
-        $where = "u.user_id = " . $this->session->userdata("idusuario") . " AND p.nivel=1";
+        $where = "u.user_id = " . $this->session->userdata("idusuario") . " AND p.nivel=1 ORDER by p.order ASC";
         $permission = $this->AdministradorModel->buscar("permission_users  u " . $join, $campos, $where);
 
         if ($permission != false) {
@@ -51,7 +51,7 @@ class MY_Controller extends CI_Controller {
         } else {
             $menu = $this->AdministradorModel->buscar("perfiles", '*', 'id=' . $this->session->userdata("idperfil"), 'row');
 
-            $ruta = base_url() . $menu["menu"];
+//            $ruta = base_url() . $menu["menu"];
             switch ($_SESSION["idperfil"]) {
                 case 1: {
 //                        $ruta = "/var/www/html/contactosms.new/public/menu/menu1.ini";
@@ -69,6 +69,7 @@ class MY_Controller extends CI_Controller {
                         break;
                     }
             }
+//            echo $ruta;exit;
             $data = (parse_ini_file($ruta, true));
             $cont = 0;
             foreach ($data as $i => $value) {
