@@ -1,10 +1,4 @@
 <br>
-
-<div class="row">
-    <div class="col-lg-2 col-lg-offset-3">
-        <a href="<?php echo base_url() ?>formatos/formato.xlsx" download="formato.xlsx" class="title">Formato Archivo</a>
-    </div>
-</div>
 <div class="container-fluid">
     <form id="frmExcelBases" enctype="multipart/form-data">
         <div class="row">
