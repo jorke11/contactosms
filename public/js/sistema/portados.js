@@ -11,6 +11,7 @@ function Portados() {
     }
 
     this.confirmation = function () {
+        toastr.remove();
         var param = {};
         param.archivo_id = $("#archivo_id").val();
         $.ajax({
@@ -19,7 +20,7 @@ function Portados() {
             data: param,
             dataType: "JSON",
             success: function (data) {
-
+                toastr.success("Numero confirmado");
                 table.ajax.reload();
             }
         });
@@ -85,6 +86,8 @@ function Portados() {
     }
 
     this.save = function () {
+        var elem = $(this);
+        elem.attr("disabled", true);
         var obj = {};
         var data = $("#frm").serialize();
         if ($("#numero").val() != '' && !isNaN($("#numero").val()) && ($("#numero").val()).length == 10) {
@@ -97,6 +100,7 @@ function Portados() {
                     if (data.success == true) {
                         toastr.success("Operacion realizada");
                         table.ajax.reload();
+                        elem.attr("disabled", false);
                     }
                 }
             })

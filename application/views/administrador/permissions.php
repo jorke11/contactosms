@@ -1,4 +1,5 @@
-
+<script src="<?php echo base_url() ?>librerias/toastr/toastr.min.js"></script>
+<link href="<?php echo base_url() ?>librerias/toastr/toastr.min.css" rel="stylesheet">
 <div class="container">
     <form name="form" id="formPermission">
         <div class="row">

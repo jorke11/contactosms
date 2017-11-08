@@ -18,6 +18,8 @@ class Plantilla extends MY_Controller {
         parent::__construct();
         date_default_timezone_set('America/Bogota');
         header('Content-Type: text/html; charset=UTF-8');
+// Unix
+        setlocale(LC_TIME, 'es_ES.UTF-8');
         /**
          * Se cargan las librerias necesarias
          */
@@ -151,6 +153,8 @@ class Plantilla extends MY_Controller {
          * Se instancia objeto de la clase para leer el archivo excel
          */
         $datos = new Spreadsheet_Excel_Reader();
+        $datos->setUTFEncoder('iconv');
+        $datos->setOutputEncoding('CP1251');
         $error = $datos->read($arc["ruta"]);
 
         /**
@@ -171,7 +175,6 @@ class Plantilla extends MY_Controller {
              */
             $contador = 0;
 
-            PHPExcel_Shared_Date::ExcelToPHP($dateValue = 0, $adjustToTimezone = FALSE, $timezone = NULL);
 
             foreach ($datos->sheets[0]['cells'] as $cont => $value) {
                 if ($cont > 1) {
@@ -358,13 +361,14 @@ class Plantilla extends MY_Controller {
 
     function agregaDatosSession($arreglo, $fila, $idbase) {
         $programado = explode(" ", date("Y/m/d H:i:s"));
+
+
         if (isset($arreglo[6])) {
+            $date = explode(" ", $arreglo[6]);
             $UNIX_DATE = ($arreglo[6] - 25569) * 86400;
             $arreglo[6] = gmdate("Y/m/d H:i:s", $UNIX_DATE);
             $programado = explode(" ", $arreglo[6]);
         }
-
-
 
         $valFecha = $this->calculaFecha($programado[0], $programado[1]);
 
@@ -465,16 +469,22 @@ class Plantilla extends MY_Controller {
 
         $mensaje = $this->LimpiaMensaje($this->mensaje);
 
+//        print_r($fila);exit;
         if (isset($fila[3]) && $fila[3] != '') {
+            $fila[3] = $this->LimpiaMensaje($fila[3]);
             $mensaje = str_replace("%campo1%", $fila[3], $this->mensaje);
         }
 
         if (isset($fila[4]) && $fila[4] != '') {
+            $fila[4] = $this->LimpiaMensaje($fila[4]);
             $mensaje = str_replace("%campo2%", $fila[4], $mensaje);
         }
 
         if (isset($fila[5]) && $fila[5] != '') {
-            $mensaje = str_replace("%campo3%", $fila[5], $mensaje);
+            if (strpos($mensaje, "%campo3%") !== false) {
+                $fila[5] = $this->LimpiaMensaje($fila[5]);
+                $mensaje = str_replace("%campo3%", $fila[5], $mensaje);
+            }
         }
 
 

@@ -187,18 +187,41 @@ class Usuarios extends MY_Controller {
 
     public function updatePermission() {
         $in = $this->input->post();
-
         $sql = "DELETE from permission_users  where user_id=" . $in["user_id"] . " and permission_id not in(select id from permission where nivel=1)";
-        $this->AdministradorModel->ejecutar($sql,"delete");
+        $this->AdministradorModel->ejecutar($sql, "delete");
 
         $cont = 0;
 
         foreach ($in["ids"] as $value) {
             $new["user_id"] = $in["user_id"];
             $new["permission_id"] = $value;
-            $this->AdministradorModel->insert("permission_users", $new);
+            $val = $this->AdministradorModel->buscar("permission_users", "*", "user_id=" . $new["user_id"] . " and permission_id=" . $value);
+            if (!$val) {
+                $this->AdministradorModel->insert("permission_users", $new);
+                $cont++;
+            }
+
             $cont++;
         }
+
+        $ids = implode(",", $in["ids"]);
+
+
+        $node = $this->AdministradorModel->buscar("permission", "node_id", "id IN($ids) and node_id is not null group by node_id");
+
+
+        foreach ($node as $value) {
+            $new["user_id"] = $in["user_id"];
+            $new["permission_id"] = $value["node_id"];
+
+            $res = $this->AdministradorModel->buscar("permission_users", "*", "user_id=" . $in["user_id"] . " and permission_id=" . $value["node_id"]);
+            if ($res == false) {
+                $this->AdministradorModel->insert("permission_users", $new);
+            }
+        }
+
+
+
 
         echo json_encode(array("success" => true, "new" => $cont));
     }

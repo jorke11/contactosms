@@ -268,21 +268,43 @@ class Reportes extends MY_Controller {
         exit;
     }
 
+    public function responses() {
+        $data["empresas"] = $this->ReportesModel->Buscar("empresas ORDER BY nombre", 'id,nombre', NULL, NULL, 'produccion');
+        $data["canales"] = $this->ReportesModel->Buscar("canales", 'id,nombre', NULL, NULL, 'produccion');
+        $data["carrier"] = $this->ReportesModel->Buscar("carries", 'codigo,nombre', NULL, NULL, 'produccion');
+        $data["vista"] = "informes/responses";
+        $this->load->view("template", $data);
+    }
+
+    public function getResponses() {
+        $in = $this->input->post();
+
+
+        if ($in["idcanal"] != 0) {
+            $this->datatables->where("idcanal", $in["idcanal"]);
+        }
+
+        $this->datatables->where("fecha >=", $in["inicio"] . " 00:00");
+        $this->datatables->where("fecha <=", $in["final"] . " 23:59");
+
+        echo $this->datatables
+                ->select("id,canal,canal,source,numero,mensaje,fecha")
+                ->from("vrespuesta")
+                ->generate();
+    }
+
     public function consolidado() {
-
-
-
         $data["vista"] = "informes/consolidado";
         $this->load->view("template", $data);
     }
 
     public function getConsolidado() {
-	$role = "";
+        $role = "";
 
-	if($this->session->userdata("idperfil")!=1){
-		$role="WHERE u.id=".$this->session->userdata("idusuario");	
-	}
-	
+        if ($this->session->userdata("idperfil") != 1) {
+            $role = "WHERE u.id=" . $this->session->userdata("idusuario");
+        }
+
         $sql = "
             select u.id,u.usuario,
             u.enviados enviados,
@@ -293,13 +315,9 @@ class Reportes extends MY_Controller {
             ORDER by 3 DESC
             
             ";
-        
-        
 
-          
-        
         $datos = $this->AdministradorModel->ejecutar($sql);
-        
+
 //        $respuesta = $this->dataTable($datos);
 //        $respuesta["draw"] = 1;
 //        echo json_encode($respuesta);
