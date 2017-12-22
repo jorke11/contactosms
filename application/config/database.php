@@ -48,9 +48,9 @@
 $active_group = 'default';
 $active_record = TRUE;
 
-$db['default']['hostname'] = '200.41.6.123';
+//$db['default']['hostname'] = '200.41.6.123';
 //$db['default']['hostname'] = '10.221.16.88';
-//$db['default']['hostname']='localhost'
+$db['default']['hostname']='localhost';
 $db['default']['username'] = 'postgres';
 $db['default']['password'] = '123';
 $db['default']['database'] = 'contactosms';
@@ -68,9 +68,9 @@ $db['default']['stricton'] = FALSE;
 $db['default']['port'] = 5432; 
 
 
-$db['produccion']['hostname'] = '200.41.6.123';
+//$db['produccion']['hostname'] = '200.41.6.123';
 //$db['produccion']['hostname'] = '10.221.16.88';
-//$db['produccion']['hostname']='localhost'
+$db['produccion']['hostname']='localhost';
 $db['produccion']['username'] = 'postgres';
 $db['produccion']['password'] = '123';
 $db['produccion']['database'] = 'contactosms';
@@ -87,9 +87,9 @@ $db['produccion']['autoinit'] = TRUE;
 $db['produccion']['stricton'] = FALSE;
 $db['produccion']['port'] = 5432; 
 
-$db['produccion']['hostname'] = '200.41.6.123';
+//$db['produccion']['hostname'] = '200.41.6.123';
 //$db['dbmysql']['hostname'] = '10.221.16.88';
-//$db['produccion']['hostname']='localhost'
+$db['produccion']['hostname']='localhost';
 $db['dbmysql']['username'] = 'root';
 $db['dbmysql']['password'] = 'toor';
 $db['dbmysql']['database'] = 'smsapp';
@@ -106,9 +106,9 @@ $db['dbmysql']['autoinit'] = TRUE;
 $db['dbmysql']['stricton'] = FALSE;
 //$db['mysql']['port'] = 5432; 
 
-$db['natura']['hostname'] = '200.41.6.123';
+//$db['natura']['hostname'] = '200.41.6.123';
 //$db['default']['hostname'] = '10.221.16.88';
-//$db['default']['hostname']='localhost'
+$db['default']['hostname']='localhost';
 $db['natura']['username'] = 'postgres';
 $db['natura']['password'] = '123';
 $db['natura']['database'] = 'natura';

@@ -7,8 +7,8 @@ class MY_Model extends CI_Model {
 
     function __construct() {
         parent::__construct();
-        $this->dbproduccion = $this->load->database('produccion', TRUE);
-        $this->dbmysql = $this->load->database('dbmysql', TRUE);
+//        $this->dbproduccion = $this->load->database('produccion', TRUE);
+//        $this->dbmysql = $this->load->database('dbmysql', TRUE);
     }
 
     /**
