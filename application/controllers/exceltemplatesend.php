@@ -143,7 +143,7 @@ class ExcelTemplateSend extends MY_Controller {
         }
 
         $content = array();
-        for ($i = 0; $i <= 5; $i++) {
+        for ($i = 0; $i <= 20; $i++) {
             if (isset($detail[$i])) {
                 $content[] = $detail[$i];
             }
