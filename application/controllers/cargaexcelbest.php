@@ -3,7 +3,10 @@
 if (!defined('BASEPATH'))
     exit('No direct script access allowed');
 
-class CargaExcel extends MY_Controller {
+ini_set('post_max_size', '4024M');
+ini_set('upload_max_filesize', '4024M');
+
+class CargaExcelBest extends MY_Controller {
 
     private $nombreArchivo;
     private $idempresa;
@@ -15,6 +18,7 @@ class CargaExcel extends MY_Controller {
     public function __construct() {
         parent::__construct();
         header('Content-Type: text/html; charset=UTF-8');
+
         /**
          * Se cargan las librerias necesarias
          */
@@ -35,7 +39,8 @@ class CargaExcel extends MY_Controller {
      * metodo para cargar la vista principal
      */
     public function index() {
-        $data["vista"] = "cargaexceltest/inicio";
+        
+        $data["vista"] = "cargaexcelbest/inicio";
         $this->load->view("template", $data);
     }
 
@@ -48,7 +53,6 @@ class CargaExcel extends MY_Controller {
     }
 
     function preCarga() {
-        echo "asd";exit;
         $data = array();
         $idbase = 0;
         $this->nombreArchivo = $_FILES["archivo"]["name"];
@@ -124,56 +128,7 @@ class CargaExcel extends MY_Controller {
         echo json_encode($respuesta);
     }
 
-//    function cargaExcel($dataext = NULL) {
-//        include APPPATH . 'third_party/PHPExcel/IOFactory.php';
-//        $fechapro = '';
-//        $this->idbase = 0;
-//        $data = ($dataext == NULL) ? $this->input->post() : $dataext;
-//        /**
-//         * si el arreglo fue cargado se crea la base
-//         */
-//        $data["idempresa"] = $this->idempresa;
-//        $data["idusuario"] = $this->idusuario;
-//
-//        $where = "id=" . $data["idarchivo"];
-//        $arc = $this->CargaexcelModel->buscar("archivos", 'ruta', $where, 'row');
-//
-//
-//        unset($data["idarchivo"]);
-//        /**
-//         * Se instancia objeto de la clase para leer el archivo excel
-//         */
-//        $inputFileName = $arc["ruta"];
-//        $objPHPExcel = PHPExcel_IOFactory::load($inputFileName);
-//
-//        $rowIterator = $objPHPExcel->getActiveSheet()->getRowIterator();
-//        foreach ($rowIterator as $row) {
-//            echo "fila " . $row->getRowIndex();
-//            $cellIterator = $row->getCellIterator();
-//            $cellIterator->setIterateOnlyExistingCells(false); // Loop all cells, even if it is not set
-//            if (1 == $row->getRowIndex())
-//                continue; //skip first row la del encabezado
-//            $rowIndex = $row->getRowIndex();
-//            $array_data[$rowIndex] = array('A' => '', 'B' => '', 'C' => '', 'D' => '');
-//
-//            foreach ($cellIterator as $cell) {
-//                if ('A' == $cell->getColumn()) {
-//                    $array_data[$rowIndex][$cell->getColumn()] = $cell->getCalculatedValue();
-//                    $datos[$rowIndex]['pac_identificacion'] = $cell->getCalculatedValue();
-//                } else if ('B' == $cell->getColumn()) {
-//                    $array_data[$rowIndex][$cell->getColumn()] = $cell->getCalculatedValue();
-//                    $datos[$rowIndex]['pac_nombre'] = $cell->getCalculatedValue();
-//                } else if ('C' == $cell->getColumn()) {
-//                    $array_data[$rowIndex][$cell->getColumn()] = PHPExcel_Style_NumberFormat::toFormattedString($cell->getCalculatedValue(), 'YYYY-MM-DD');
-//                    $datos[$rowIndex]['pac_fecha'] = PHPExcel_Style_NumberFormat::toFormattedString($cell->getCalculatedValue(), 'MM-DD-YYYY');
-//                } else if ('D' == $cell->getColumn()) {
-//                    $array_data[$rowIndex][$cell->getColumn()] = $cell->getCalculatedValue();
-//                }
-//            }
-//        }
-//        print_r($datos);
-//        exit;
-//    }
+
 
     function cargaExcel($dataext = NULL) {
 
@@ -217,6 +172,8 @@ class CargaExcel extends MY_Controller {
             /**
              * Iteracion para almacenar los datos del archivo en un arreglo
              */
+            $this->CargaexcelModel->update("usuarios", $this->session->userdata("idusuario"), array("quantity_temp" => 0));
+
             $contador = 0;
             foreach ($datos->sheets[0]['cells'] as $cont => $value) {
                 if ($cont > 1) {
@@ -227,7 +184,7 @@ class CargaExcel extends MY_Controller {
             $where = 'idbase=' . $this->idbase . " and error NOT ILIKE '%LISTA NEGRA%'";
             $error = $this->CargaexcelModel->buscar("errores", 'COUNT(*) total', $where, 'row');
             $where = 'idbase=' . $this->idbase . " and error ILIKE '%LISTA NEGRA%'";
-            $errorBlack = $this->CargaexcelModel->buscar("errores", 'COUNT(*) total',$where, 'row');
+            $errorBlack = $this->CargaexcelModel->buscar("errores", 'COUNT(*) total', $where, 'row');
             $total = $this->CargaexcelModel->buscar("registros", 'COUNT(*) total', 'idbase=' . $this->idbase, 'row');
             $para["errores"] = $error["total"];
             $para["registros"] = $total["total"];
@@ -422,7 +379,7 @@ class CargaExcel extends MY_Controller {
                 if (!empty($arreglo[2]) && isset($arreglo[2])) {
                     $validado = NULL;
                     $nombres = array('numero', 'mensaje', 'nota');
-                    $campos = 'coalesce(enviados,0) + coalesce(pendientes,0) consumo';
+                    $campos = 'coalesce(enviados,0) + coalesce(pendientes,0)+coalesce(quantity_temp,0) consumo';
                     $consumo = $this->CargaexcelModel->buscar("usuarios", $campos, 'id=' . $this->idusuario, 'row');
                     $servicio = $this->CargaexcelModel->buscar("servicios", 'coalesce(maximo,0) maximo', 'id=' . $this->session->userdata("idservicio"), 'row');
                     $disponible = $servicio["maximo"] - $consumo["consumo"];
@@ -621,10 +578,16 @@ class CargaExcel extends MY_Controller {
      */
     function insertRegistros($arreglo) {
 
+        $row = $this->CargaexcelModel->buscar("usuarios", "id,quantity_temp", "id=" . $this->session->userdata("idusuario"), "row");
+
+        $cont = $row["quantity_temp"] + 1;
+
         foreach ($arreglo as $value) {
             $value["cargue"] = 'web';
             $value["idbase"] = $this->idbase;
             $idinser = $this->CargaexcelModel->insert("registros", $value);
+            $this->CargaexcelModel->update("usuarios", $this->session->userdata("idusuario"), array("quantity_temp" => $cont));
+            $cont++;
         }
     }
 
@@ -696,7 +659,7 @@ class CargaExcel extends MY_Controller {
         $datos = $this->CargaexcelModel->Buscar("errores", 'numero,mensaje,nota,error', $where);
         echo json_encode($datos);
     }
-    
+
     public function verBlacklist() {
         $data = $this->input->post();
         $where = "idbase=" . $data["idbase"] . " and error ILIKE '%LISTA NEGRA%' limit 20";

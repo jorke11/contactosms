@@ -1,10 +1,11 @@
-
+php_value upload_max_filesize 2M
+php_value post_max_size 2M 
 #Activamos la reescritura SI SOLO SI el mod_rewrite se encuentra activado, así se evitan errores 500
 <IfModule mod_rewrite.c>
 
     # Suponiendo que el listado de directorios esté desactivado, permitimos indexación y activamos el rewrite
-    Options +FollowSymLinks -Indexes
-    RewriteEngine on
+   # Options +FollowSymLinks -Indexes
+    #RewriteEngine on
 
     # Usualmente "AllowOverride" debería estar en 'All' en el apache.conf/vhost.conf, pero si no descomentas lo siguiente para evitar un error 404
     #AllowOverride All
@@ -13,12 +14,25 @@
     #RewriteBase /
 
     # con esta instrucción bloqueamos el acceso a la carpeta system, si es que se encuentra en el directorio web
-    RedirectMatch 403 ^/(system).*$
+    #RedirectMatch 403 ^/(system).*$
 
     # Antes de redireccionar, se verifica que la petición no sea a un directorio o archivo existente
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
+    #RewriteCond %{REQUEST_FILENAME} !-f
+    #RewriteCond %{REQUEST_FILENAME} !-d
 
     # Si el archivo/directorio no existe, redireccionamos
-    RewriteRule ^(.*)$ index.php/$1 [L]
+    #RewriteRule ^(.*)$ index.php/$1 [L]
 </IfModule>
+
+
+Options FollowSymLinks
+<IfModule mod_rewrite.c>
+    RewriteEngine on
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ /contactosms/index.php?/$1 [L]
+</IfModule>
+
+<IfModule !mod_rewrite.c>
+    ErrorDocument 404 /index.php
+</IfModule>    
