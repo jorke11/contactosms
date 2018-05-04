@@ -57,7 +57,9 @@ $(function () {
                 }
 
             } else {
-                var res = preCarga2("cargaexcelbest/preCarga");
+
+                var res = preCarga2("preCarga");
+
                 res.success(function (data) {
                     $("#tablainfo tbody").empty();
                     $("#tablaanterior tbody").empty();
@@ -114,7 +116,7 @@ $(function () {
             objeto.fechaprogramado = $("#frmfecha #fecha").val();
             $("#subir").attr("disabled", true);
             $(".cargando").removeClass("hidden");
-            var res = crud(objeto, 'cargaexcelbest/cargaExcel'), envioefectivo = 0;
+            var res = crud(objeto, 'cargaExcel'), envioefectivo = 0;
 
             res.success(function (data) {
                 objexcel = data;

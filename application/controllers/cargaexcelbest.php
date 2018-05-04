@@ -14,6 +14,7 @@ class CargaExcelBest extends MY_Controller {
     private $estadoPerfil;
     private $estado;
     private $idbase = 0;
+    public $prefijos;
 
     public function __construct() {
         parent::__construct();
@@ -30,8 +31,7 @@ class CargaExcelBest extends MY_Controller {
         $this->nombreArchivo = '';
         $this->load->library('smpp');
         $this->idempresa = $this->session->userdata("idempresa");
-
-
+        $this->prefijos = $this->CargaexcelModel->buscar('carries', 'codigo,prefijos');
         $this->estadoPerfil = ($this->session->userdata("idperfil") == 3) ? 6 : FALSE;
     }
 
@@ -39,8 +39,13 @@ class CargaExcelBest extends MY_Controller {
      * metodo para cargar la vista principal
      */
     public function index() {
-        
         $data["vista"] = "cargaexcelbest/inicio";
+        $this->load->view("template", $data);
+    }
+
+    public function valida() {
+
+        $data["vista"] = "cargaexcelbest/valida";
         $this->load->view("template", $data);
     }
 
@@ -53,6 +58,7 @@ class CargaExcelBest extends MY_Controller {
     }
 
     function preCarga() {
+        $this->benchmark->mark('start');
         $data = array();
         $idbase = 0;
         $this->nombreArchivo = $_FILES["archivo"]["name"];
@@ -125,18 +131,16 @@ class CargaExcelBest extends MY_Controller {
         $respuesta["nombreaanterior"] = (isset($com["nombre"]) && $com["nombre"] != '') ? $com["nombre"] : 'No hay registros';
         $respuesta["registrosactual"] = $respuesta["filas"];
         $respuesta["registrosanterior"] = (isset($com["registros"])) ? $com["registros"] : 'No hay registros';
+        $this->benchmark->mark('end');
+        $respuesta["measure"] = $this->benchmark->elapsed_time('start', 'end');
         echo json_encode($respuesta);
     }
 
-
-
     function cargaExcel($dataext = NULL) {
-
+        $this->benchmark->mark('start');
         $fechapro = '';
         $this->idbase = 0;
         $data = ($dataext == NULL) ? $this->input->post() : $dataext;
-
-
 
         /**
          * si el arreglo fue cargado se crea la base
@@ -160,7 +164,8 @@ class CargaExcelBest extends MY_Controller {
          */
         if ($error["error"] == '') {
 
-            $fechapro = (isset($data["fechaprogramado"]) && !empty($data["fechaprogramado"])) ? $data["fechaprogramado"] : '';
+//            $fechapro = (isset($data["fechaprogramado"]) && !empty($data["fechaprogramado"])) ? $data["fechaprogramado"] : '';
+            $fechapro = date("Y-m-d");
 
             /**
              * De ser valido el arreglo '$data' se inserta un registro con la informacion necesaria para 
@@ -178,7 +183,7 @@ class CargaExcelBest extends MY_Controller {
             foreach ($datos->sheets[0]['cells'] as $cont => $value) {
                 if ($cont > 1) {
                     $contador++;
-                    $this->agregaDatosSession($value, $fechapro, $cont, $this->idbase);
+                    $this->agregaDatosSessionV($value, $fechapro, $cont, $this->idbase);
                 }
             }
             $where = 'idbase=' . $this->idbase . " and error NOT ILIKE '%LISTA NEGRA%'";
@@ -205,6 +210,8 @@ class CargaExcelBest extends MY_Controller {
                 $respuesta["cupo"] = $total["total"] - $cupo["disponible"];
             }
 
+            $this->benchmark->mark('end');
+            $respuesta["measure"] = $this->benchmark->elapsed_time('start', 'end');
             echo json_encode($respuesta);
         }
     }
@@ -336,6 +343,37 @@ class CargaExcelBest extends MY_Controller {
         return $rta;
     }
 
+    function validaNumeroV($numero = NULL) {
+        $numero = trim($numero);
+
+        if (preg_match("/(\d+){10}/", $numero)) {
+            $existe = $this->validaPrefijoV($numero);
+
+            if ($existe = false) {
+                $rta[] = TRUE;
+                $rta[] = $numero;
+                $rta[] = $existe;
+            } else {
+                $rta[] = FALSE;
+                $rta[] = "Problemas con el numero";
+            }
+        }
+
+        return $rta;
+    }
+
+    public function validaPrefijoV($numero) {
+        $num = substr($numero, 0, 3);
+        $resp = "";
+        foreach ($this->prefijos as $value) {
+            if (strpos($value["prefijos"], $num) !== false) {
+                $resp = $value["codigo"];
+            }
+        }
+
+        return ($resp != '') ? $resp : FALSE;
+    }
+
     function insertaErrores($msj, $arreglo, $idbase, $fila) {
         $error["nota"] = $this->LimpiaMensaje($arreglo[3]);
         $error["mensaje"] = $this->LimpiaMensaje((isset($arreglo[2]) ? $arreglo[2] : ''));
@@ -410,6 +448,50 @@ class CargaExcelBest extends MY_Controller {
         } else {
             $this->insertaErrores($valFecha[1], $arreglo, $idbase, $fila);
         }
+    }
+
+    function agregaDatosSessionV($arreglo, $fechapro = '', $fila, $idbase) {
+
+        $arreglo[4] = $fechapro;
+//            $arreglo[4] = $valFecha[1];
+        $validaNum = $this->validaNumeroV($arreglo[1]);
+
+        if ($validaNum[0] == TRUE) {
+            if (!empty($arreglo[2]) && isset($arreglo[2])) {
+                $validado = NULL;
+                $nombres = array('numero', 'mensaje', 'nota');
+                $campos = 'coalesce(enviados,0) + coalesce(pendientes,0) + coalesce(quantity_temp,0) consumo';
+                $consumo = $this->CargaexcelModel->buscar("usuarios", $campos, 'id=' . $this->idusuario, 'row');
+                $servicio = $this->CargaexcelModel->buscar("servicios", 'coalesce(maximo,0) maximo', 'id=' . $this->session->userdata("idservicio"), 'row');
+                $disponible = $servicio["maximo"] - $consumo["consumo"];
+
+                if ($disponible >= 1) {
+
+                    $validado = $this->validaFilaV($arreglo, $validaNum[2]);
+                    if (is_array($validado)) {
+                        if (isset($validado[1])) {
+                            $this->insertRegistros($validado);
+                            $validado = '';
+                        } else {
+                            $arregloTodo[] = $validado;
+                            $this->insertRegistros($arregloTodo);
+                            $arregloTodo = '';
+                        }
+                    } else {
+                        $this->insertaErrores(str_replace("error:", '', $validado), $arreglo, $idbase, $fila);
+                    }
+                } else {
+                    $this->insertaErrores("El usuario no cuenta con cupo suficiente", $arreglo, $idbase, $fila);
+                }
+            } else {
+                $this->insertaErrores("Contenido del mensaje vacio", $arreglo, $idbase, $fila);
+            }
+        } else {
+            $this->insertaErrores($validaNum[1], $arreglo, $idbase, $fila);
+        }
+//        } else {
+//            $this->insertaErrores($valFecha[1], $arreglo, $idbase, $fila);
+//        }
     }
 
     /**
@@ -569,6 +651,94 @@ class CargaExcelBest extends MY_Controller {
         /**
          * Si no existe ningun error retorn el arreglo  de lo contrario retorne el error
          */
+        return ($errorSms == '') ? $arreglo : 'error:' . $errorSms;
+    }
+
+    function validaFilaV($fila, $existe) {
+        $errorNum = '';
+        $errorSms = '';
+        $smsdobles = 0;
+        $preferencias = '';
+
+        $arreglo["mensaje"] = $this->LimpiaMensaje($fila[2]);
+        $arreglo["numero"] = $this->LimpiaMensaje($fila[1]);
+        $arreglo["nota"] = $this->LimpiaMensaje($fila[3]);
+
+
+        $mensaje = (strlen($arreglo["mensaje"]) <= 160) ? $arreglo["mensaje"] : FALSE;
+
+        /**
+         * si no existe el carriers agrega el primero por defecto del usuario
+         */
+        $preferencias = $this->CargaexcelModel->Buscar("usuarios", '*', 'id=' . $this->session->userdata("idusuario"), 'row');
+
+        $busca = explode(",", $preferencias["preferencias"]);
+        $resta = (int) $existe["codigo"] - 1;
+        $preferencias["idcanal"] = $busca[$resta];
+
+        if (empty($preferencias)) {
+            $preferencias = $this->CargaexcelModel->Buscar("canales", 'id as idcanal', null, 'row');
+        }
+
+        $this->estado = 4;
+
+        if ($mensaje == FALSE) {
+
+            /**
+             * Se verifica si el usuario cuenta con la opcion para concatenar
+             */
+            $concatena = $this->session->userdata("concatena");
+
+            if ($concatena == 1) {
+
+                /**
+                 * Si puede concatenar dividalo de tal manera que lo pueda enviar
+                 */
+                $anterior = 0;
+
+                $tam = ceil(strlen($arreglo["mensaje"]) / 160);
+                $sms = array();
+                for ($i = 1; $i <= $tam; ++$i) {
+                    $largo = $i * 160;
+                    $sms[$i]["numero"] = $arreglo["numero"];
+                    $sms[$i]["mensaje"] = trim(substr($arreglo["mensaje"], $anterior, 160));
+                    $sms[$i]["nota"] = $arreglo["nota"];
+                    $sms[$i]["idcarrie"] = (isset($existe["codigo"])) ? $existe["codigo"] : '0';
+                    $sms[$i]["orden"] = $i;
+                    $sms[$i]["cargue"] = 'web';
+                    $sms[$i]["idbase"] = $this->idbase;
+                    $sms[$i]["estado"] = $this->estado;
+                    $sms[$i]["fechacargue"] = date("Y-m-d H:i:s");
+                    $sms[$i]["idcanal"] = $preferencias["idcanal"];
+                    $sms[$i]["flash"] = (isset($fila[4]) && $fila[4] == 'SI') ? 1 : 0;
+                    $sms[$i]["fechaprogramado"] = (isset($fila[4])) ? $fila[4] : date("Y-m-d H:i");
+                    $anterior = $largo;
+                }
+
+                $arreglo = $sms;
+
+                $dobles = $this->CargaexcelModel->buscar("bases", 'dobles', 'id=' . $this->idbase, 'row');
+                $datadobles["dobles"] = $dobles["dobles"] + 1;
+                $this->CargaexcelModel->update("bases", $this->idbase, $datadobles);
+            } else {
+                /**
+                 * Si no cuenta con la opcion de concatenar agregue un error
+                 */
+                $errorSms = "No tiene permisos para contactenar sms supera los 160,";
+            }
+        } else {
+            /**
+             * En caso de que no supere los 160 caracteres
+             */
+            $arreglo["estado"] = $this->estado;
+            $arreglo["mensaje"] = $mensaje;
+            $arreglo["nota"] = $arreglo["nota"];
+            $arreglo["idcarrie"] = $existe["codigo"];
+            $arreglo["orden"] = 1;
+            $arreglo["idcanal"] = $preferencias["idcanal"];
+            $arreglo["fechacargue"] = date("Y-m-d H:i:s");
+        }
+
         return ($errorSms == '') ? $arreglo : 'error:' . $errorSms;
     }
 
