@@ -349,7 +349,7 @@ class CargaExcelBest extends MY_Controller {
         if (preg_match("/(\d+){10}/", $numero)) {
             $existe = $this->validaPrefijoV($numero);
 
-            if ($existe = false) {
+            if ($existe != false) {
                 $rta[] = TRUE;
                 $rta[] = $numero;
                 $rta[] = $existe;
@@ -358,16 +358,17 @@ class CargaExcelBest extends MY_Controller {
                 $rta[] = "Problemas con el numero";
             }
         }
-
         return $rta;
     }
 
     public function validaPrefijoV($numero) {
         $num = substr($numero, 0, 3);
         $resp = "";
+
+
         foreach ($this->prefijos as $value) {
             if (strpos($value["prefijos"], $num) !== false) {
-                $resp = $value["codigo"];
+                $resp = $value;
             }
         }
 
