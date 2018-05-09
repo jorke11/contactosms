@@ -590,10 +590,10 @@ class CargaExcelBest extends MY_Controller {
         /**
          * Se valia si el mensaje supero los 160 caracteres y si no existe error con el numero
          */
-        $where = "numero='" . $arreglo["numero"] . "' and user_id=" . $this->session->userdata("idusuario");
-        $black = $this->CargaexcelModel->Buscar("blacklist", "*", $where, 'row');
+//        $where = "numero='" . $arreglo["numero"] . "' and user_id=" . $this->session->userdata("idusuario");
+//        $black = $this->CargaexcelModel->Buscar("blacklist", "*", $where, 'row');
 
-        if ($black == false) {
+//        if ($black == false) {
 
             if ($mensaje == FALSE) {
 
@@ -651,9 +651,9 @@ class CargaExcelBest extends MY_Controller {
                 $arreglo["idcanal"] = $preferencias["idcanal"];
                 $arreglo["fechacargue"] = date("Y-m-d H:i:s");
             }
-        } else {
-            $errorSms = "NUMERO EN LISTA NEGRA - " . $arreglo["numero"];
-        }
+//        } else {
+//            $errorSms = "NUMERO EN LISTA NEGRA - " . $arreglo["numero"];
+//        }
 
 
         /**
