@@ -147,7 +147,7 @@ class CargaExcelBest extends MY_Controller {
         $this->idbase = 0;
         $data = ($dataext == NULL) ? $this->input->post() : $dataext;
 
-        
+
         /**
          * si el arreglo fue cargado se crea la base
          */
@@ -592,65 +592,64 @@ class CargaExcelBest extends MY_Controller {
          */
 //        $where = "numero='" . $arreglo["numero"] . "' and user_id=" . $this->session->userdata("idusuario");
 //        $black = $this->CargaexcelModel->Buscar("blacklist", "*", $where, 'row');
-
 //        if ($black == false) {
 
-            if ($mensaje == FALSE) {
+        if ($mensaje == FALSE) {
+
+            /**
+             * Se verifica si el usuario cuenta con la opcion para concatenar
+             */
+            $concatena = $this->session->userdata("concatena");
+
+            if ($concatena == 1) {
 
                 /**
-                 * Se verifica si el usuario cuenta con la opcion para concatenar
+                 * Si puede concatenar dividalo de tal manera que lo pueda enviar
                  */
-                $concatena = $this->session->userdata("concatena");
+                $anterior = 0;
 
-                if ($concatena == 1) {
+                $tam = ceil(strlen($arreglo["mensaje"]) / 160);
+                $sms = array();
+                for ($i = 1; $i <= $tam; ++$i) {
+                    $largo = $i * 160;
+                    $sms[$i]["numero"] = $arreglo["numero"];
+                    $sms[$i]["mensaje"] = trim(substr($arreglo["mensaje"], $anterior, 160));
+                    $sms[$i]["nota"] = $arreglo["nota"];
+                    $sms[$i]["idcarrie"] = (isset($existe["codigo"])) ? $existe["codigo"] : '0';
+                    $sms[$i]["orden"] = $i;
+                    $sms[$i]["cargue"] = 'web';
+                    $sms[$i]["idbase"] = $this->idbase;
+                    $sms[$i]["estado"] = $this->estado;
+                    $sms[$i]["fechacargue"] = date("Y-m-d H:i:s");
+                    $sms[$i]["idcanal"] = $preferencias["idcanal"];
+                    $sms[$i]["flash"] = (isset($fila[4]) && $fila[4] == 'SI') ? 1 : 0;
+                    $sms[$i]["fechaprogramado"] = (isset($fila[4])) ? $fila[4] : date("Y-m-d H:i");
+                    $anterior = $largo;
+                }
 
-                    /**
-                     * Si puede concatenar dividalo de tal manera que lo pueda enviar
-                     */
-                    $anterior = 0;
-
-                    $tam = ceil(strlen($arreglo["mensaje"]) / 160);
-                    $sms = array();
-                    for ($i = 1; $i <= $tam; ++$i) {
-                        $largo = $i * 160;
-                        $sms[$i]["numero"] = $arreglo["numero"];
-                        $sms[$i]["mensaje"] = trim(substr($arreglo["mensaje"], $anterior, 160));
-                        $sms[$i]["nota"] = $arreglo["nota"];
-                        $sms[$i]["idcarrie"] = (isset($existe["codigo"])) ? $existe["codigo"] : '0';
-                        $sms[$i]["orden"] = $i;
-                        $sms[$i]["cargue"] = 'web';
-                        $sms[$i]["idbase"] = $this->idbase;
-                        $sms[$i]["estado"] = $this->estado;
-                        $sms[$i]["fechacargue"] = date("Y-m-d H:i:s");
-                        $sms[$i]["idcanal"] = $preferencias["idcanal"];
-                        $sms[$i]["flash"] = (isset($fila[4]) && $fila[4] == 'SI') ? 1 : 0;
-                        $sms[$i]["fechaprogramado"] = (isset($fila[4])) ? $fila[4] : date("Y-m-d H:i");
-                        $anterior = $largo;
-                    }
-
-                    $arreglo = $sms;
+                $arreglo = $sms;
 
 //                    $dobles = $this->CargaexcelModel->buscar("bases", 'dobles', 'id=' . $this->idbase, 'row');
 //                    $datadobles["dobles"] = $dobles["dobles"] + 1;
 //                    $this->CargaexcelModel->update("bases", $this->idbase, $datadobles);
-                } else {
-                    /**
-                     * Si no cuenta con la opcion de concatenar agregue un error
-                     */
-                    $errorSms = "No tiene permisos para contactenar sms supera los 160,";
-                }
             } else {
                 /**
-                 * En caso de que no supere los 160 caracteres
+                 * Si no cuenta con la opcion de concatenar agregue un error
                  */
-                $arreglo["estado"] = $this->estado;
-                $arreglo["mensaje"] = $mensaje;
-                $arreglo["nota"] = $arreglo["nota"];
-                $arreglo["idcarrie"] = $existe["codigo"];
-                $arreglo["orden"] = 1;
-                $arreglo["idcanal"] = $preferencias["idcanal"];
-                $arreglo["fechacargue"] = date("Y-m-d H:i:s");
+                $errorSms = "No tiene permisos para contactenar sms supera los 160,";
             }
+        } else {
+            /**
+             * En caso de que no supere los 160 caracteres
+             */
+            $arreglo["estado"] = $this->estado;
+            $arreglo["mensaje"] = $mensaje;
+            $arreglo["nota"] = $arreglo["nota"];
+            $arreglo["idcarrie"] = $existe["codigo"];
+            $arreglo["orden"] = 1;
+            $arreglo["idcanal"] = $preferencias["idcanal"];
+            $arreglo["fechacargue"] = date("Y-m-d H:i:s");
+        }
 //        } else {
 //            $errorSms = "NUMERO EN LISTA NEGRA - " . $arreglo["numero"];
 //        }
@@ -667,7 +666,7 @@ class CargaExcelBest extends MY_Controller {
         $errorSms = '';
         $smsdobles = 0;
         $preferencias = '';
-
+        echo "asds":exit;
         $arreglo["mensaje"] = $this->LimpiaMensaje($fila[2]);
         $arreglo["nota"] = $this->LimpiaMensaje($fila[3]);
 
@@ -676,8 +675,6 @@ class CargaExcelBest extends MY_Controller {
         /**
          * si no existe el carriers agrega el primero por defecto del usuario
          */
-        
-
         $busca = explode(",", $this->preferencias["preferencias"]);
         $resta = (int) $existe["codigo"] - 1;
         $this->preferencias["idcanal"] = $busca[$resta];
