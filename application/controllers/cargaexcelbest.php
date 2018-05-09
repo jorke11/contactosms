@@ -630,9 +630,9 @@ class CargaExcelBest extends MY_Controller {
 
                     $arreglo = $sms;
 
-                    $dobles = $this->CargaexcelModel->buscar("bases", 'dobles', 'id=' . $this->idbase, 'row');
-                    $datadobles["dobles"] = $dobles["dobles"] + 1;
-                    $this->CargaexcelModel->update("bases", $this->idbase, $datadobles);
+//                    $dobles = $this->CargaexcelModel->buscar("bases", 'dobles', 'id=' . $this->idbase, 'row');
+//                    $datadobles["dobles"] = $dobles["dobles"] + 1;
+//                    $this->CargaexcelModel->update("bases", $this->idbase, $datadobles);
                 } else {
                     /**
                      * Si no cuenta con la opcion de concatenar agregue un error
