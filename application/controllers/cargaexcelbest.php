@@ -666,7 +666,7 @@ class CargaExcelBest extends MY_Controller {
         $errorSms = '';
         $smsdobles = 0;
         $preferencias = '';
-        echo "asds":exit;
+        echo "asds";exit;
         $arreglo["mensaje"] = $this->LimpiaMensaje($fila[2]);
         $arreglo["nota"] = $this->LimpiaMensaje($fila[3]);
 
