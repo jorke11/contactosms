@@ -15,6 +15,8 @@ class CargaExcelBest extends MY_Controller {
     private $estado;
     private $idbase = 0;
     public $prefijos;
+    public $preferencias;
+    public $preferencias_empty;
 
     public function __construct() {
         parent::__construct();
@@ -33,6 +35,10 @@ class CargaExcelBest extends MY_Controller {
         $this->idempresa = $this->session->userdata("idempresa");
         $this->prefijos = $this->CargaexcelModel->buscar('carries', 'codigo,prefijos');
         $this->estadoPerfil = ($this->session->userdata("idperfil") == 3) ? 6 : FALSE;
+
+
+        $this->preferencias = $this->CargaexcelModel->Buscar("usuarios", '*', 'id=' . $this->session->userdata("idusuario"), 'row');
+        $this->preferencias_empty = $this->CargaexcelModel->Buscar("canales", 'id as idcanal', null, 'row');
     }
 
     /**
@@ -44,7 +50,6 @@ class CargaExcelBest extends MY_Controller {
     }
 
     public function valida() {
-
         $data["vista"] = "cargaexcelbest/valida";
         $this->load->view("template", $data);
     }
@@ -142,6 +147,7 @@ class CargaExcelBest extends MY_Controller {
         $this->idbase = 0;
         $data = ($dataext == NULL) ? $this->input->post() : $dataext;
 
+        
         /**
          * si el arreglo fue cargado se crea la base
          */
@@ -344,7 +350,7 @@ class CargaExcelBest extends MY_Controller {
     }
 
     function validaNumeroV($numero = NULL) {
-        $numero = trim($numero);
+        $numero = $this->LimpiaMensaje($numero);
 
         if (preg_match("/(\d+){10}/", $numero)) {
             $existe = $this->validaPrefijoV($numero);
@@ -458,6 +464,7 @@ class CargaExcelBest extends MY_Controller {
         $validaNum = $this->validaNumeroV($arreglo[1]);
 
         if ($validaNum[0] == TRUE) {
+            $arreglo[1] = $validaNum[1];
             if (!empty($arreglo[2]) && isset($arreglo[2])) {
                 $validado = NULL;
                 $nombres = array('numero', 'mensaje', 'nota');
@@ -662,23 +669,21 @@ class CargaExcelBest extends MY_Controller {
         $preferencias = '';
 
         $arreglo["mensaje"] = $this->LimpiaMensaje($fila[2]);
-        $arreglo["numero"] = $this->LimpiaMensaje($fila[1]);
         $arreglo["nota"] = $this->LimpiaMensaje($fila[3]);
-
 
         $mensaje = (strlen($arreglo["mensaje"]) <= 160) ? $arreglo["mensaje"] : FALSE;
 
         /**
          * si no existe el carriers agrega el primero por defecto del usuario
          */
-        $preferencias = $this->CargaexcelModel->Buscar("usuarios", '*', 'id=' . $this->session->userdata("idusuario"), 'row');
+        
 
-        $busca = explode(",", $preferencias["preferencias"]);
+        $busca = explode(",", $this->preferencias["preferencias"]);
         $resta = (int) $existe["codigo"] - 1;
-        $preferencias["idcanal"] = $busca[$resta];
+        $this->preferencias["idcanal"] = $busca[$resta];
 
-        if (empty($preferencias)) {
-            $preferencias = $this->CargaexcelModel->Buscar("canales", 'id as idcanal', null, 'row');
+        if (empty($this->preferencias)) {
+            $this->preferencias = $this->preferencias_empty;
         }
 
         $this->estado = 4;
@@ -710,7 +715,7 @@ class CargaExcelBest extends MY_Controller {
                     $sms[$i]["idbase"] = $this->idbase;
                     $sms[$i]["estado"] = $this->estado;
                     $sms[$i]["fechacargue"] = date("Y-m-d H:i:s");
-                    $sms[$i]["idcanal"] = $preferencias["idcanal"];
+                    $sms[$i]["idcanal"] = $this->preferencias["idcanal"];
                     $sms[$i]["flash"] = (isset($fila[4]) && $fila[4] == 'SI') ? 1 : 0;
                     $sms[$i]["fechaprogramado"] = (isset($fila[4])) ? $fila[4] : date("Y-m-d H:i");
                     $anterior = $largo;
@@ -736,7 +741,7 @@ class CargaExcelBest extends MY_Controller {
             $arreglo["nota"] = $arreglo["nota"];
             $arreglo["idcarrie"] = $existe["codigo"];
             $arreglo["orden"] = 1;
-            $arreglo["idcanal"] = $preferencias["idcanal"];
+            $arreglo["idcanal"] = $this->preferencias["idcanal"];
             $arreglo["fechacargue"] = date("Y-m-d H:i:s");
         }
 
