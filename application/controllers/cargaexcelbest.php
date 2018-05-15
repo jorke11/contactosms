@@ -36,7 +36,6 @@ class CargaExcelBest extends MY_Controller {
         $this->prefijos = $this->CargaexcelModel->buscar('carries', 'codigo,prefijos');
         $this->estadoPerfil = ($this->session->userdata("idperfil") == 3) ? 6 : FALSE;
 
-
         $this->preferencias = $this->CargaexcelModel->Buscar("usuarios", '*', 'id=' . $this->session->userdata("idusuario"), 'row');
         $this->preferencias_empty = $this->CargaexcelModel->Buscar("canales", 'id as idcanal', null, 'row');
     }
@@ -666,8 +665,10 @@ class CargaExcelBest extends MY_Controller {
         $errorSms = '';
         $smsdobles = 0;
         $preferencias = '';
-        $arreglo["mensaje"] = $this->LimpiaMensaje($fila[2]);
-        $arreglo["nota"] = $this->LimpiaMensaje($fila[3]);
+//        $arreglo["mensaje"] = $this->LimpiaMensaje($fila[2]);
+//        $arreglo["nota"] = $this->LimpiaMensaje($fila[3]);
+        $arreglo["mensaje"] = $fila[2];
+        $arreglo["nota"] = $fila[3];
 
         $mensaje = (strlen($arreglo["mensaje"]) <= 160) ? $arreglo["mensaje"] : FALSE;
 
