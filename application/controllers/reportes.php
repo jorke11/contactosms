@@ -324,4 +324,17 @@ class Reportes extends MY_Controller {
         echo json_encode(array("data" => $datos));
     }
 
+    public function registrosFast() {
+        $data["vista"] = "informes/registrosfast";
+        $this->load->view("template", $data);
+    }
+
+    public function getRegistrosFast() {
+        echo $this->datatables
+                ->select("id,nombre,fecha,conteo,registros,round((conteo/registros::float)*100) || '%' as porcentaje,round((conteo/registros::float)*100) as porcentajen")
+                ->from("bases")
+                ->where("estado",'4')
+                ->generate();
+    }
+
 }
