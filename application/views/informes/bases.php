@@ -43,7 +43,7 @@
                                         <td><?php echo $value["registros"] ?></td>
                                         <td><?php echo $value["enviados"] ?></td>
                                         <td><?php echo $value["pendientes"] ?></td>
-                                        <td><?php echo $value["errores"] ?></td>
+                                        <td><a target="_blank" href="<?php echo base_url() . 'cargaexcel/excelErrores/' . $value["id"] ?>"><?php echo $value["errores"] ?></a></td>
                                     </tr>
                                     <?php
                                 }
